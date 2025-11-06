@@ -28,3 +28,12 @@ bonus
 3- reasoning prints (loggers)=> in mandatory just print (like sa pa in push swap) EXECUTION
 4- interactive -> pure bonus
 5- tree visualizer -> pure bonus
+
+-------------------------------------------------------------------------------------
+
+backward chaining
+    find E
+        look for rules where E is
+            if another var is unknown
+                look for rules with that one
+                    come back to origin once known
