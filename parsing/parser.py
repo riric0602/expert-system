@@ -195,7 +195,8 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 # =========
 def pretty_expr(e: Expr) -> str:
 	if isinstance(e, Ident):
-		return e.name
+		# Include the current boolean value of the identifier
+		return f"{e.name}={e.value}"
 	if isinstance(e, Not):
 		return f"!{pretty_expr(e.child)}"
 	if isinstance(e, And):
@@ -229,6 +230,10 @@ if __name__ == "__main__":
 	""".strip("\n")
 
 	pr = parse_input_lines(text.splitlines())
+
+	# Set identifiers value based on facts
+	pr.set_identifiers()
+
 	print("Rules (desugared):")
 	for r in pr.rules:
 		print(" -", pretty_rule(r))
