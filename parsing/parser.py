@@ -132,14 +132,14 @@ class Parser:
 def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 	rules: List[Implies] = []
 	initial_facts: Set[str] = set()
-	queries: List[str] = []
-	symbols: Set[str] = set()
+	queries: List[Ident] = []
+	symbols: Set[Ident] = set()
 
 	def collect(e: Expr):
 		if isinstance(e, Ident):
 			for ch in e.name:
 				if "A" <= ch <= "Z":
-					symbols.add(ch)
+					symbols.add(Ident(ch))
 		elif isinstance(e, (And, Or, Xor)):
 			for t in e.terms:
 				collect(t)
@@ -159,7 +159,7 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 				if not ("A" <= ch <= "Z"):
 					raise ValueError(f"Invalid initial fact {ch!r} in line: {raw.strip()}")
 				initial_facts.add(ch)
-				symbols.add(ch)
+				symbols.add(Ident(ch))
 			continue
 
 		# Queries: ?XYZ
@@ -169,8 +169,9 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 					continue
 				if not ("A" <= ch <= "Z"):
 					raise ValueError(f"Invalid query {ch!r} in line: {raw.strip()}")
-				queries.append(ch)
-				symbols.add(ch)
+				ident = Ident(ch)
+				queries.append(ident)
+				symbols.add(ident)
 			continue
 
 		# Rule or equivalence
@@ -237,6 +238,7 @@ if __name__ == "__main__":
 	print("Rules (desugared):")
 	for r in pr.rules:
 		print(" -", pretty_rule(r))
-	print("Initial facts:", pr.initial_facts)
-	print("Queries:", pr.queries)
-	print("Symbols:", "".join(sorted(pr.symbols)))
+	# Pretty print other sections using the same ident=value style
+	print("Initial facts:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name) if s.value))
+	print("Queries:", " ".join(f"{q.name}={q.value}" for q in sorted(pr.queries, key=lambda x: x.name)))
+	print("Symbols:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name)))
