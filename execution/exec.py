@@ -1,28 +1,45 @@
-from parsing.data import ParseResult, Ident, Eqv, Implies
-from .operations import *
+from parsing.data import ParseResult, Ident, Eqv, Implies, And, Or, Not, Xor
+from .operations import eval_expr
 
-def ident_in_rule(ident, rule):
-    if isinstance(rule.premise, Ident):
-        i = rule.premise
-        if i.name == ident.name and i.value == ident.value:
-            return True
-    if isinstance(rule.conclusion, Ident):
-        i = rule.conclusion
-        if i.name == ident.name and i.value == ident.value:
-            return True
+def prove(goal: Ident, pr: ParseResult, known=None, visited=None):
+    """Try to prove a goal identifier using backward chaining."""
+    if visited is None:
+        visited = set()
+
+    # avoid re-proving the same goal
+    if goal.name in visited:
+        return False
+    visited.add(goal.name)
+
+    # if fact, return true
+    if goal.name in known:
+        return True
+
+    # find all rules that can produce this goal
+    for rule in pr.rules:
+        if isinstance(rule.conclusion, Ident):
+            # direct match
+            if rule.conclusion.name == goal.name:
+                if eval_expr(rule.premise, pr, known, visited.copy()):
+                    known.add(goal.name)
+                    return True
+
+        elif isinstance(rule.conclusion, And):
+            for sub in rule.conclusion.terms:
+                if sub.name == goal.name:
+                    if eval_expr(rule.premise, pr, known, visited.copy()):
+                        known.add(goal.name)
+                        return True
+
     return False
-
-def execute_rule(rule):
-    if isinstance(rule, Implies):
-        implication(rule)
-        
-
-def prove(q, pr):
-    return True
 
 
 def backward_chaining(pr: ParseResult):
-    for q in pr.queries:
-        q.value = prove(q, pr)
+    known = {i.name for i in pr.initial_facts if i.value}
 
-    print(pr.queries)
+    for q in pr.queries:
+        q.value = prove(q, pr, known)
+
+    print("Results:")
+    for q in pr.queries:
+        print(f"{q.name}: {'True' if q.value else 'False'}")
