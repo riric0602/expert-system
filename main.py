@@ -14,7 +14,7 @@ if __name__ == "__main__":
     =AB
 
     # queries
-    ?EDE
+    ?ED
     """.strip("\n")
 
     pr = parse_input_lines(text.splitlines())
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         print(" -", r)
     print("Initial facts:", pr.initial_facts)	
     print(f"Queries: {pr.queries}")
-    print("Symbols:", "".join(sorted(pr.symbols)))
+    print("Symbols:", "".join(x.name for x in sorted(pr.symbols, key=lambda x: x.name)))
     print("---------------------------------------------------------")
 
     backward_chaining(pr)
