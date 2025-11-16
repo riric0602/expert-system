@@ -1,8 +1,13 @@
-def and_op(a, b):
-    return a & b
+from parsing.data import And, Or, Not, Xor, Implies, Eqv
 
-def or_op(a, b):
-    return a | b
+def operations(op):
+    if isinstance(op, And):
+        return op.terms[0] + op.terms[1]
+    if isinstance(op, Or):
+        return op.terms[0] | op.terms[1]
+    if isinstance(op, Xor):
+        return op.terms[0] ^ op.terms[1]
 
-def xor_op(a, b):
-    return a ^ b
+def implication(premise, conclusion):
+    premise_value = None
+    

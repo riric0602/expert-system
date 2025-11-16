@@ -4,6 +4,7 @@ from execution.exec import backward_chaining
 if __name__ == "__main__":
     text = """
     # rules
+    C => E
     A + (B | C) => D
     !(A + B) | (C ^ D) => E
     A <=> B
@@ -13,7 +14,7 @@ if __name__ == "__main__":
     =AB
 
     # queries
-    ?DEZ
+    ?ED
     """.strip("\n")
 
     pr = parse_input_lines(text.splitlines())
@@ -25,7 +26,8 @@ if __name__ == "__main__":
     for r in pr.rules:
         print(" -", r)
     print("Initial facts:", pr.initial_facts)	
-    print("Queries:", pr.queries)
+    print(f"Queries: {pr.queries}")
     print("Symbols:", "".join(sorted(pr.symbols)))
+    print("---------------------------------------------------------")
 
     backward_chaining(pr)
