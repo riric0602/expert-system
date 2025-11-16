@@ -14,7 +14,7 @@ if __name__ == "__main__":
     =AB
 
     # queries
-    ?ED
+    ?EDE
     """.strip("\n")
 
     pr = parse_input_lines(text.splitlines())

@@ -1,8 +1,10 @@
 from parsing.data import ParseResult, Ident, Eqv, Implies, And, Or, Not, Xor
 from .operations import eval_expr
 
-def prove(goal: Ident, pr: ParseResult, known=None, visited=None):
+def prove(goal: Ident, pr: ParseResult, visited=None):
     """Try to prove a goal identifier using backward chaining."""
+    known = pr.initial_facts
+
     if visited is None:
         visited = set()
 
@@ -20,14 +22,14 @@ def prove(goal: Ident, pr: ParseResult, known=None, visited=None):
         if isinstance(rule.conclusion, Ident):
             # direct match
             if rule.conclusion.name == goal.name:
-                if eval_expr(rule.premise, pr, known, visited.copy()):
+                if eval_expr(rule.premise, pr, visited.copy()):
                     known.add(goal.name)
                     return True
 
         elif isinstance(rule.conclusion, And):
             for sub in rule.conclusion.terms:
                 if sub.name == goal.name:
-                    if eval_expr(rule.premise, pr, known, visited.copy()):
+                    if eval_expr(rule.premise, pr, visited.copy()):
                         known.add(goal.name)
                         return True
 
@@ -35,10 +37,8 @@ def prove(goal: Ident, pr: ParseResult, known=None, visited=None):
 
 
 def backward_chaining(pr: ParseResult):
-    known = {i.name for i in pr.initial_facts if i.value}
-
     for q in pr.queries:
-        q.value = prove(q, pr, known)
+        q.value = prove(q, pr)
 
     print("Results:")
     for q in pr.queries:
