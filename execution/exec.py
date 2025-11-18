@@ -1,42 +1,58 @@
-from parsing.data import ParseResult, Ident, Eqv, Implies, And, Or, Not, Xor
-from .operations import eval_prop
+from parsing.data import *
+from .operations import eval_expr
 
-def prove(goal: Ident, pr: ParseResult, visited=None):
-    """Try to prove a goal identifier using backward chaining."""
-    if visited is None:
-        visited = set()
+def conclusion_contains(expr, goal):
+    """Check if the conclusion expression contains the query."""
+    if isinstance(expr, Ident):
+        return expr.name == goal.name
 
-    # avoid re-proving the same goal
-    if goal.name in visited:
-        return False
-    visited.add(goal.name)
-
-    # if fact, return true
-    if goal.name in pr.initial_facts:
-        return True
-
-    # find all rules that can produce this goal
-    for rule in pr.rules:
-        if isinstance(rule.conclusion, Ident):
-            if rule.conclusion.name == goal.name:
-                if eval_prop(rule.premise, pr, visited.copy()):
-                    pr.initial_facts.add(goal.name)
-                    return True
-
-        elif isinstance(rule.conclusion, And):
-            for sub in rule.conclusion.terms:
-                if sub.name == goal.name:
-                    if eval_prop(rule.premise, pr, visited.copy()):
-                        pr.initial_facts.add(goal.name)
-                        return True
+    if isinstance(expr, (And, Or, Xor)):
+        return any(conclusion_contains(t, goal) for t in expr.terms)
 
     return False
 
+def prove(goal: Ident, pr: ParseResult, visited=None):
+    """Prove the value of a query using backward chaining."""
+    if visited is None:
+        visited = set()
+
+    name = goal.name
+
+    # If the goal value was already set earlier, return it
+    if goal.value is not None:
+        return goal.value
+    
+    # Detect cycle and value proven undetermined
+    if name in visited:
+        return UNDETERMINED
+    
+    visited.add(name)
+
+    found_rule = False
+    rule_results = []
+
+    # search for rules whose conclusion contains this goal
+    for rule in pr.rules:
+        if conclusion_contains(rule.conclusion, goal):
+            found_rule = True
+            v = eval_expr(rule.premise, pr, visited.copy())
+            rule_results.append(v)
+
+    # no rules lead to this goal → false
+    if not found_rule:
+        return UNDETERMINED
+    
+    # if any rule proves it true → true
+    if any(v is TRUE for v in rule_results):
+        return TRUE
+
+    # if all rules are false → false
+    if all(v is FALSE for v in rule_results):
+        return FALSE
+
+    # mixed → undetermined
+    return UNDETERMINED
 
 def backward_chaining(pr: ParseResult):
     for q in pr.queries:
         q.value = prove(q, pr)
-
-    print("Results:")
-    for q in pr.queries:
-        print(f"{q.name}: {'True' if q.value else 'False'}")

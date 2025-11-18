@@ -1,30 +1,58 @@
-from parsing.data import And, Or, Not, Xor, Ident
+from parsing.data import *
 
-def eval_prop(expr, pr, visited):
-    """Recursively evaluate logical expressions in backward chaining."""
+def eval_expr(expr, pr, visited):
+    """Evaluate a logical expression using backward chaining."""
     from .exec import prove
 
+    # Direct match
     if isinstance(expr, Ident):
-        if expr.name in pr.initial_facts:
-            return True
         return prove(expr, pr, visited)
 
-    if isinstance(expr, And):
-        return all(
-            eval_prop(term, pr, visited.copy()) for term in expr.terms
-        )
-
-    if isinstance(expr, Or):
-        return any(
-            eval_prop(term, pr, visited.copy()) for term in expr.terms
-        )
-
+    # NOT
     if isinstance(expr, Not):
-        return not eval_prop(expr.child, pr, visited.copy())
+        v = eval_expr(expr.child, pr, visited.copy())
+        if v is None:
+            return None
+        return not v
 
+    # AND
+    if isinstance(expr, And):
+        values = []
+        for t in expr.terms:
+            v = eval_expr(t, pr, visited.copy())
+            values.append(v)
+            if v is False:
+                return False      # AND short-circuit
+        # if any is None → undetermined
+        if any(v is None for v in values):
+            return None
+        return True               # all true
+
+    # OR
+    if isinstance(expr, Or):
+        values = []
+        for t in expr.terms:
+            v = eval_expr(t, pr, visited.copy())
+            values.append(v)
+            if v is True:
+                return True       # OR short-circuit
+        # if all false → false
+        if all(v is False for v in values):
+            return False
+        return None               # mixed false/None
+
+    # XOR (binary only)
     if isinstance(expr, Xor):
-        vals = [eval_prop(term, pr, visited.copy()) for term in expr.terms]
-        return vals[0] ^ vals[1]
+        left, right = expr.terms
+        l = eval_expr(left, pr, visited.copy())
+        r = eval_expr(right, pr, visited.copy())
 
-    return False
-    
+        # If either is undetermined → undetermined
+        if l is None or r is None:
+            return None
+
+        # XOR truth table
+        return (l and not r) or (r and not l)
+
+    # unknown expression node
+    return None

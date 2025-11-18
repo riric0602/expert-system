@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from typing import List, Set, Union, Optional
 
+TRUE = True
+FALSE = False
+UNDETERMINED = None
+
 # Expr nodes
 class Expr: pass
 

@@ -31,3 +31,7 @@ if __name__ == "__main__":
     print("---------------------------------------------------------")
 
     backward_chaining(pr)
+
+    print("---------------------------------------------------------")
+    for q in pr.queries:
+        print(f"{q.name}: {'True' if q.value else 'False'}")
