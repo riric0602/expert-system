@@ -236,13 +236,10 @@ def pretty_expr(e: Expr) -> str:
 def pretty_rule(r: Implies) -> str:
 	return f"{pretty_expr(r.premise)} => {pretty_expr(r.conclusion)}"
 
-# =========
-# TEST MAIN
-# =========
-if __name__ == "__main__":
-	# Parse file provided as first argument, otherwise default example
+def parser(path: str) -> ParseResult:
+	# Parse file given by path, otherwise default example
 	default_path = "examples/example.txt"
-	path = sys.argv[1] if len(sys.argv) > 1 else default_path
+	path = path if len(path) > 1 else default_path
 	try:
 		lines = read_lines_from_file(path)
 	except ValueError as e:
@@ -253,12 +250,21 @@ if __name__ == "__main__":
 
 	# Set identifiers value based on facts
 	pr.set_identifiers()
+	return pr
 
-	print("Rules (desugared):")
-	for r in pr.rules:
-		print(" -", pretty_rule(r))
+# # =========
+# # TEST MAIN
+# # =========
+# if __name__ == "__main__":
+# 	# Parse file provided as first argument, otherwise default example
+# 	default_path = "examples/example.txt"
+# 	pr = parser(sys.argv[1])
 
-	# Pretty print other sections using the same ident=value style
-	print("Initial facts:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name) if s.value))
-	print("Queries:", " ".join(f"{q.name}={q.value}" for q in sorted(pr.queries, key=lambda x: x.name)))
-	print("Symbols:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name)))
+# 	print("Rules (desugared):")
+# 	for r in pr.rules:
+# 		print(" -", pretty_rule(r))
+
+# 	# Pretty print other sections using the same ident=value style
+# 	print("Initial facts:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name) if s.value))
+# 	print("Queries:", " ".join(f"{q.name}={q.value}" for q in sorted(pr.queries, key=lambda x: x.name)))
+# 	print("Symbols:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name)))
