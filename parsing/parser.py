@@ -192,6 +192,29 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 	return ParseResult(rules, initial_facts, queries, symbols)
 
 # =========
+# FILE LOADER
+# =========
+# Reads input file and return lines.
+# Errors handled:
+# - File not found
+# - Permission denied
+# - Empty file (no non-whitespace content)
+def read_lines_from_file(path: str) -> List[str]:
+	p = Path(path)
+	try:
+		text = p.read_text(encoding="utf-8")
+	except FileNotFoundError as e:
+		raise ValueError(f"No such file: {path}") from e
+	except PermissionError as e:
+		raise ValueError(f"Permission denied: {path}") from e
+
+	# Check empty (no non-whitespace content)
+	if not text or not any(ch.strip() for ch in text.splitlines()):
+		raise ValueError(f"Empty file: {path}")
+
+	return text.splitlines()
+
+# =========
 # DEBUG PRINT
 # =========
 def pretty_expr(e: Expr) -> str:
@@ -215,22 +238,16 @@ def pretty_rule(r: Implies) -> str:
 # TEST MAIN
 # =========
 if __name__ == "__main__":
-	# TODO Remove and parse file
-	text = """
-	# rules
-	A + (B | C) => D
-	!(A + B) | (C ^ D) => E
-	A <=> B
-	A => B + C
+	# Parse file provided as first argument, otherwise default example
+	default_path = "examples/example.txt"
+	path = sys.argv[1] if len(sys.argv) > 1 else default_path
+	try:
+		lines = read_lines_from_file(path)
+	except ValueError as e:
+		print(f"Error: {e}")
+		sys.exit(1)
 
-	# initial facts
-	=AB
-
-	# queries
-	?DEZ
-	""".strip("\n")
-
-	pr = parse_input_lines(text.splitlines())
+	pr = parse_input_lines(lines)
 
 	# Set identifiers value based on facts
 	pr.set_identifiers()
@@ -238,6 +255,7 @@ if __name__ == "__main__":
 	print("Rules (desugared):")
 	for r in pr.rules:
 		print(" -", pretty_rule(r))
+
 	# Pretty print other sections using the same ident=value style
 	print("Initial facts:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name) if s.value))
 	print("Queries:", " ".join(f"{q.name}={q.value}" for q in sorted(pr.queries, key=lambda x: x.name)))
