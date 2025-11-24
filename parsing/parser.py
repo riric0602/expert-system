@@ -136,6 +136,7 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 	initial_facts: Set[str] = set()
 	queries: List[Ident] = []
 	symbols: Set[Ident] = set()
+	original_rules: List[str] = []
 
 	def collect(e: Expr):
 		if isinstance(e, Ident):
@@ -177,6 +178,7 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 			continue
 
 		# Rule or equivalence
+		original_rules.append(raw)
 		toks = tokenize(line)
 		p = Parser(toks)
 		if any(t.type == "EQUIV" for t in toks):
@@ -191,7 +193,7 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 			collect(imp.premise)
 			collect(imp.conclusion)
 
-	return ParseResult(rules, initial_facts, queries, symbols)
+	return ParseResult(rules, initial_facts, queries, symbols, original_rules)
 
 # =========
 # FILE LOADER
@@ -255,16 +257,17 @@ def parser(path: str) -> ParseResult:
 # # =========
 # # TEST MAIN
 # # =========
-# if __name__ == "__main__":
-# 	# Parse file provided as first argument, otherwise default example
-# 	default_path = "examples/example.txt"
-# 	pr = parser(sys.argv[1])
+if __name__ == "__main__":
+	# Parse file provided as first argument, otherwise default example
+	default_path = "examples/example.txt"
+	pr = parser(default_path)
+	for s in pr.original_rules:
+		print(s)
+	print("Rules (desugared):")
+	for r in pr.rules:
+		print(" -", pretty_rule(r))
 
-# 	print("Rules (desugared):")
-# 	for r in pr.rules:
-# 		print(" -", pretty_rule(r))
-
-# 	# Pretty print other sections using the same ident=value style
-# 	print("Initial facts:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name) if s.value))
-# 	print("Queries:", " ".join(f"{q.name}={q.value}" for q in sorted(pr.queries, key=lambda x: x.name)))
-# 	print("Symbols:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name)))
+	# Pretty print other sections using the same ident=value style
+	print("Initial facts:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name) if s.value))
+	print("Queries:", " ".join(f"{q.name}={q.value}" for q in sorted(pr.queries, key=lambda x: x.name)))
+	print("Symbols:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name)))

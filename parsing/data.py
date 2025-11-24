@@ -49,6 +49,7 @@ class ParseResult:
 	initial_facts: Set[str]
 	queries: List[Ident]
 	symbols: Set[Ident]
+	original_rules: List[str]
 
 	# Post-parse: set Ident.value based on initial_facts
 	def set_identifiers(self) -> None:
