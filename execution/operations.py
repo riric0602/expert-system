@@ -1,5 +1,6 @@
 from parsing.data import *
 
+
 def eval_expr(expr, pr, visited):
     """Evaluate a logical expression using backward chaining."""
     from .exec import prove
@@ -14,7 +15,7 @@ def eval_expr(expr, pr, visited):
     if isinstance(expr, Not):
         v = eval_expr(expr.child, pr, visited)
         if v is None:
-            return None
+            return None, pr
         return not v
 
     # AND
