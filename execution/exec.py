@@ -52,7 +52,7 @@ def prove(goal: Ident, pr: ParseResult, visited=None):
     for rule, original_rule in zip(pr.rules, pr.original_rules):
         if conclusion_contains(rule.conclusion, goal):
             found_rule = True
-            result = eval_expr(rule.premise, pr, visited)
+            premise_value = eval_expr(rule.premise, pr, visited)
 
             idents = list(
                 {i.name: i for i in idents_in_premise(rule.premise)}
@@ -67,10 +67,11 @@ def prove(goal: Ident, pr: ParseResult, visited=None):
             print("---------------------------------------------------------")
             
             # only for implies
-            if result is False:
-                result = None
-            else:
-                result = True
+            if isinstance(rule, Implies):
+                if premise_value is False:
+                    result = None
+                else:
+                    result = True
             
             print(f"Since we know {original_rule}, then {name} is {result}")
             rule_results.append(result)
