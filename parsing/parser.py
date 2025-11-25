@@ -134,6 +134,7 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 	initial_facts: Set[str] = set()
 	queries: List[Ident] = []
 	symbols: Set[Ident] = set()
+	original_rules: List[str] = []
 
 	def collect(e: Expr):
 		if isinstance(e, Ident):
@@ -175,6 +176,7 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 			continue
 
 		# Rule or equivalence
+		original_rules.append(raw)
 		toks = tokenize(line)
 		p = Parser(toks)
 		if any(t.type == "EQUIV" for t in toks):
@@ -189,7 +191,7 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 			collect(imp.premise)
 			collect(imp.conclusion)
 
-	return ParseResult(rules, initial_facts, queries, symbols)
+	return ParseResult(rules, initial_facts, queries, symbols, original_rules)
 
 # =========
 # FILE LOADER
@@ -234,13 +236,10 @@ def pretty_expr(e: Expr) -> str:
 def pretty_rule(r: Implies) -> str:
 	return f"{pretty_expr(r.premise)} => {pretty_expr(r.conclusion)}"
 
-# =========
-# TEST MAIN
-# =========
-if __name__ == "__main__":
-	# Parse file provided as first argument, otherwise default example
+def parser(path: str) -> ParseResult:
+	# Parse file given by path, otherwise default example
 	default_path = "examples/example.txt"
-	path = sys.argv[1] if len(sys.argv) > 1 else default_path
+	path = path if len(path) > 1 else default_path
 	try:
 		lines = read_lines_from_file(path)
 	except ValueError as e:
@@ -251,7 +250,17 @@ if __name__ == "__main__":
 
 	# Set identifiers value based on facts
 	pr.set_identifiers()
+	return pr
 
+# # =========
+# # TEST MAIN
+# # =========
+if __name__ == "__main__":
+	# Parse file provided as first argument, otherwise default example
+	default_path = "examples/example.txt"
+	pr = parser(default_path)
+	for s in pr.original_rules:
+		print(s)
 	print("Rules (desugared):")
 	for r in pr.rules:
 		print(" -", pretty_rule(r))
