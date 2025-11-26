@@ -9,7 +9,7 @@ from .data import	Expr,	\
 					Not, \
 					And, \
 					Implies, \
-					Eqv, \
+					Equiv, \
 					ParseResult
 from .lexer import Token, tokenize
 
@@ -102,13 +102,12 @@ class Parser:
 		concl = self.parse_conclusion()
 		return Implies(premise=prem, conclusion=concl)
 
-	def parse_equiv_line(self) -> List[Implies]:
-		# Parse A <=> B, then RETURN TWO implies: A=>B and B=>A
+	def parse_equiv_line(self) -> Equiv:
+		# Parse A <=> B, return an Equiv node
 		left = self.parse_expr()
 		self.eat("EQUIV")
 		right = self.parse_expr()
-		return [Implies(premise=left, conclusion=right),
-				Implies(premise=right, conclusion=left)]
+		return Equiv(left=left, right=right)
 
 	def parse_conclusion(self) -> Expr:
 		if not self.at("IDENT"):
@@ -130,7 +129,7 @@ class Parser:
 # FILE CONTENT PARSING
 # =========
 def parse_input_lines(lines: Iterable[str]) -> ParseResult:
-	rules: List[Implies] = []
+	rules: List[Union[Implies, Equiv]] = []
 	initial_facts: Set[str] = set()
 	queries: List[Ident] = []
 	symbols: Set[Ident] = set()
@@ -180,11 +179,10 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 		toks = tokenize(line)
 		p = Parser(toks)
 		if any(t.type == "EQUIV" for t in toks):
-			two = p.parse_equiv_line()	# returns [Implies(left=>right), Implies(right=>left)]
-			rules.extend(two)
-			for imp in two:
-				collect(imp.premise)
-				collect(imp.conclusion)
+			eq = p.parse_equiv_line()
+			rules.append(eq)
+			collect(eq.left)
+			collect(eq.right)
 		else:
 			imp = p.parse_rule_line()
 			rules.append(imp)
@@ -233,8 +231,11 @@ def pretty_expr(e: Expr) -> str:
 		return " ^ ".join(pretty_expr(t) for t in e.terms)
 	return "<??>"
 
-def pretty_rule(r: Implies) -> str:
-	return f"{pretty_expr(r.premise)} => {pretty_expr(r.conclusion)}"
+def pretty_rule(r: Union[Implies, Equiv]) -> str:
+	if isinstance(r, Implies):
+		return f"{pretty_expr(r.premise)} => {pretty_expr(r.conclusion)}"
+	# Equivalence
+	return f"{pretty_expr(r.left)} <=> {pretty_expr(r.right)}"
 
 def parser(path: str) -> ParseResult:
 	# Parse file given by path, otherwise default example
@@ -261,7 +262,7 @@ if __name__ == "__main__":
 	pr = parser(default_path)
 	for s in pr.original_rules:
 		print(s)
-	print("Rules (desugared):")
+	print("Rules:")
 	for r in pr.rules:
 		print(" -", pretty_rule(r))
 
@@ -269,3 +270,5 @@ if __name__ == "__main__":
 	print("Initial facts:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name) if s.value))
 	print("Queries:", " ".join(f"{q.name}={q.value}" for q in sorted(pr.queries, key=lambda x: x.name)))
 	print("Symbols:", " ".join(f"{s.name}={s.value}" for s in sorted(pr.symbols, key=lambda x: x.name)))
+	print("")
+	print(str(pr.rules))
