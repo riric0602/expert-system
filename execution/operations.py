@@ -5,8 +5,6 @@ def eval_expr(expr, pr, visited):
     """Evaluate a logical expression using backward chaining."""
     from .exec import prove
 
-    print("Computing value of rule premise...")
-
     # Direct match
     if isinstance(expr, Ident):
         return prove(expr, pr, visited)
@@ -15,7 +13,7 @@ def eval_expr(expr, pr, visited):
     if isinstance(expr, Not):
         v = eval_expr(expr.child, pr, visited)
         if v is None:
-            return None, pr
+            return None
         return not v
 
     # AND

@@ -1,5 +1,4 @@
 from parsing.data import *
-from parsing.parser import pretty_rule
 from .operations import eval_expr
 
 
@@ -16,7 +15,6 @@ def conclusion_contains(expr: Expr, goal: Ident):
 
 def idents_in_premise(expr):
     if isinstance(expr, Ident):
-        print([expr])
         return [expr]
 
     if isinstance(expr, Not):
@@ -37,10 +35,9 @@ def prove(goal: Ident, pr: ParseResult, visited=None):
     found_rule = False
     rule_results = []
     name = goal.name
-    result = goal.value
 
     if goal.value is not None:
-        return goal.value, pr
+        return goal.value
     
     if visited is None:
         visited = set()
@@ -57,7 +54,8 @@ def prove(goal: Ident, pr: ParseResult, visited=None):
             idents = list(
                 {i.name: i for i in idents_in_premise(rule.premise)}
                 .values()
-                )
+            )
+
             print(f"We know that :")
             for i in idents:
                 print(f"{i.name} is {i.value}")
@@ -66,6 +64,8 @@ def prove(goal: Ident, pr: ParseResult, visited=None):
             print("Conclusion") 
             print("---------------------------------------------------------")
             
+            result = None
+
             # only for implies
             if isinstance(rule, Implies):
                 if premise_value is False:
@@ -96,10 +96,9 @@ def prove(goal: Ident, pr: ParseResult, visited=None):
 def backward_chaining(pr: ParseResult):
     try:
         for q in pr.queries:
-            print(f"Proving {q.name}")
-            q.value = prove(q, pr)
-            print(f"{q.name} : {q.value}")
-            print("---------------------------------------------------------")
+            print(f"Proving {q.name} : {q.value}")
+            if q.value == None:
+                q.value = prove(q, pr)
     except Exception as e:
         print("Error: ", e)
         exit()
