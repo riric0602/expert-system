@@ -136,6 +136,11 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 	queries: List[Ident] = []
 	symbols: Set[Ident] = set()
 	original_rules: List[str] = []
+	duplicate_rules: Set[str] = set()
+	duplicate_queries: Set[str] = set()
+	duplicate_facts: Set[str] = set()
+	seen_rule_text: Set[str] = set()
+	seen_query_names: Set[str] = set()
 
 	def collect(e: Expr):
 		if isinstance(e, Ident):
@@ -160,6 +165,8 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 					continue
 				if not ("A" <= ch <= "Z"):
 					raise ValueError(f"Invalid initial fact {ch!r} in line: {raw.strip()}")
+				if ch in initial_facts:
+					duplicate_facts.add(ch)
 				initial_facts.add(ch)
 				symbols.add(Ident(ch))
 			continue
@@ -172,11 +179,20 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 				if not ("A" <= ch <= "Z"):
 					raise ValueError(f"Invalid query {ch!r} in line: {raw.strip()}")
 				ident = Ident(ch)
-				queries.append(ident)
+				if ident.name in seen_query_names:
+					duplicate_queries.add(ident.name)
+				else:
+					queries.append(ident)
+					seen_query_names.add(ident.name)
 				symbols.add(ident)
 			continue
 
 		# Rule or equivalence
+		normalized_rule = line.strip()
+		if normalized_rule in seen_rule_text:
+			duplicate_rules.add(normalized_rule)
+		else:
+			seen_rule_text.add(normalized_rule)
 		original_rules.append(raw)
 		toks = tokenize(line)
 		p = Parser(toks)
@@ -190,6 +206,20 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 			rules.append(imp)
 			collect(imp.premise)
 			collect(imp.conclusion)
+
+	if duplicate_facts:
+		dupes = " ".join(sorted(duplicate_facts))
+		raise ValueError(f"Duplicate or contradictory initial facts: {dupes}")
+	if duplicate_queries:
+		dupes = " ".join(sorted(duplicate_queries))
+		raise ValueError(f"Duplicate queries: {dupes}")
+	if duplicate_rules:
+		dupes = "; ".join(sorted(duplicate_rules))
+		raise ValueError(f"Duplicate rules: {dupes}")
+	if not rules:
+		raise ValueError("No rules provided in input")
+	if not queries:
+		raise ValueError("No queries provided in input")
 
 	return ParseResult(rules, initial_facts, queries, symbols, original_rules)
 
@@ -249,10 +279,15 @@ def parser(path: str) -> ParseResult:
 		print(f"Error: {e}")
 		sys.exit(1)
 
-	pr = parse_input_lines(lines)
+	try:
+		pr = parse_input_lines(lines)
+	except ValueError as e:
+		print(f"Error: {e}")
+		sys.exit(1)
 
 	# Set identifiers value based on facts
 	pr.set_identifiers()
+
 	return pr
 
 # # =========
