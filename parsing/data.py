@@ -34,18 +34,18 @@ class Xor(Expr):
 
 @dataclass
 class Implies:
-	premise: Expr
-	conclusion: Expr
+    premise: Expr
+    conclusion: Expr
 
 @dataclass
-class Eqv:
-	left: Expr
-	right: Expr
+class Equiv:
+    left: Expr
+    right: Expr
 
 # Parsing result
 @dataclass
 class ParseResult:
-	rules: List[Union[Implies, Eqv]]
+	rules: List[Union[Implies, Equiv]]
 	initial_facts: Set[str]
 	queries: List[Ident]
 	symbols: Set[Ident]
@@ -73,8 +73,12 @@ class ParseResult:
 
 		# Update identifiers within rules
 		for r in self.rules:
-			visit(r.premise)
-			visit(r.conclusion)
+			if isinstance(r, Implies):
+				visit(r.premise)
+				visit(r.conclusion)
+			else:  # Equiv
+				visit(r.left)
+				visit(r.right)
 
 		# For queries and symbols, keep None when not in initial facts
 		for q in self.queries:
