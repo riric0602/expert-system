@@ -1,5 +1,5 @@
 from parsing.parser import parse_input_lines
-from execution.exec import backward_chaining
+from execution.exec import Engine
 
 if __name__ == "__main__":
     text = """
@@ -30,7 +30,8 @@ A => B + C
     print("Symbols:", pr.symbols)
     print("---------------------------------------------------------")
 
-    backward_chaining(pr)
+    engine = Engine(pr)
+    engine.backward_chaining()
 
     print("---------------------------------------------------------")
     for q in pr.queries:

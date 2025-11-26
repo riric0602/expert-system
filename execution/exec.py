@@ -1,105 +1,175 @@
 from parsing.data import *
-from .operations import eval_expr
 
 
-def conclusion_contains(expr: Expr, goal: Ident):
-    """Check if the conclusion expression contains the query."""
-    if isinstance(expr, Ident):
-        return expr.name == goal.name
-
-    if isinstance(expr, (And, Or, Xor)):
-        return any(conclusion_contains(t, goal) for t in expr.terms)
-
-    return False
+class Engine:
+    def __init__(self, pr: ParseResult):
+        self.pr = pr
+        self.symbols = {}
+        self._normalize()
 
 
-def idents_in_premise(expr):
-    if isinstance(expr, Ident):
-        return [expr]
+    def _normalize(self):
+        """Create a shared Ident instance for every identifier and rewrite rules/queries."""
+        self.symbols = { ident.name: ident for ident in self.pr.symbols }
 
-    if isinstance(expr, Not):
-        return idents_in_premise(expr.child)
+        def replace(expr):
+            if isinstance(expr, Ident):
+                return self.symbols[expr.name]
 
-    if isinstance(expr, (And, Or, Xor)):
-        ids = []
-        for t in expr.terms:
-            ids.extend(idents_in_premise(t))
-        return ids
+            if isinstance(expr, Not):
+                expr.child = replace(expr.child)
+                return expr
 
-    return []
+            if isinstance(expr, (And, Or, Xor)):
+                expr.terms = [replace(t) for t in expr.terms]
+                return expr
+
+            if isinstance(expr, Implies):
+                expr.premise = replace(expr.premise)
+                expr.conclusion = replace(expr.conclusion)
+                return expr
+
+            if isinstance(expr, Eqv):
+                expr.left = replace(expr.left)
+                expr.right = replace(expr.right)
+                return expr
+
+            return expr
+
+        for r in self.pr.rules:
+            replace(r)
+
+        # force queries to use shared objects
+        for i, q in enumerate(self.pr.queries):
+            self.symbols[q.name] = self.pr.queries[i]
 
 
-def prove(goal: Ident, pr: ParseResult, visited=None):
-    """Prove the value of a query using backward chaining."""
-    print("---------------------------------------------------------")
-    found_rule = False
-    rule_results = []
-    name = goal.name
+    def eval_expr(self, expr, visited):
+        if isinstance(expr, Ident):
+            return self.prove(expr, visited)
 
-    if goal.value is not None:
-        return goal.value
-    
-    if visited is None:
-        visited = set()
+        if isinstance(expr, Not):
+            v = self.eval_expr(expr.child, visited)
+            return None if v is None else not v
 
-    visited.add(name)
-    print("Visited: ", visited)
+        if isinstance(expr, And):
+            vals = [self.eval_expr(t, visited) for t in expr.terms]
+            if any(v is False for v in vals):
+                return False
+            if any(v is None for v in vals):
+                return None
+            return True
 
-    # search for rules whose conclusion contains this goal
-    for rule, original_rule in zip(pr.rules, pr.original_rules):
-        if conclusion_contains(rule.conclusion, goal):
-            found_rule = True
-            premise_value = eval_expr(rule.premise, pr, visited)
+        if isinstance(expr, Or):
+            vals = [self.eval_expr(t, visited) for t in expr.terms]
+            if any(v is True for v in vals):
+                return True
+            if all(v is False for v in vals):
+                return False
+            return None
 
-            idents = list(
-                {i.name: i for i in idents_in_premise(rule.premise)}
-                .values()
-            )
+        if isinstance(expr, Xor):
+            l = self.eval_expr(expr.terms[0], visited)
+            r = self.eval_expr(expr.terms[1], visited)
+            if l is None or r is None:
+                return None
+            return (l and not r) or (r and not l)
 
-            print(f"We know that :")
-            for i in idents:
-                print(f"{i.name} is {i.value}")
+        return None
+
+
+    def conclusion_contains(self, expr: Expr, goal: Ident):
+        """Check if the conclusion expression contains the query."""
+        if isinstance(expr, Ident):
+            return expr.name == goal.name
+
+        if isinstance(expr, (And, Or, Xor)):
+            return any(self.conclusion_contains(t, goal) for t in expr.terms)
+
+        return False
+
+
+    def idents_in_premise(self, expr):
+        if isinstance(expr, Ident):
+            return [expr]
+
+        if isinstance(expr, Not):
+            return self.idents_in_premise(expr.child)
+
+        if isinstance(expr, (And, Or, Xor)):
+            ids = []
+            for t in expr.terms:
+                ids.extend(self.idents_in_premise(t))
+            return ids
+
+        return []
+
+
+    # Backchaining Algorithm Functions
+    def prove(self, goal: Ident, visited=None):
+        ident = self.symbols[goal.name]
+
+        if ident.value is not None:
+            return ident.value
+
+        if visited is None:
+            visited = set()
+        if ident.name in visited:
+            return None
+        visited.add(ident.name)
+
+        print("Visited: ", visited)
+
+        found_rule = False
+        rule_results = []
+
+        for rule, original_rule in zip(self.pr.rules, self.pr.original_rules):
+            if self.conclusion_contains(rule.conclusion, ident):
+                found_rule = True
+                premise_value = self.eval_expr(rule.premise, visited)
+
+                result = None
+                if isinstance(rule, Implies):
+                    result = True if premise_value is not False else None
+
+                rule_results.append(result)
+
+                # Reasolution prints
+                idents = list(
+                    {i.name: i for i in self.idents_in_premise(rule.premise)}
+                    .values()
+                )
+                
+                print(f"We know that :")
+                for i in idents:
+                    print(f"{i.name} is {i.value}")
+
+                print("---------------------------------------------------------")
+                print("Conclusion") 
+                print("---------------------------------------------------------")
+
+                print(f"Since we know {original_rule}, then {ident.name} is {result}")
         
-            print("---------------------------------------------------------")
-            print("Conclusion") 
-            print("---------------------------------------------------------")
-            
-            result = None
+        if not found_rule:
+            ident.value = None
+            return None
 
-            # only for implies
-            if isinstance(rule, Implies):
-                if premise_value is False:
-                    result = None
-                else:
-                    result = True
-            
-            print(f"Since we know {original_rule}, then {name} is {result}")
-            rule_results.append(result)
+        determined = [v for v in rule_results if v is not None]
+        if len(determined) > 1 and any(v != determined[0] for v in determined):
+            raise ValueError("Contradiction in rule conclusions. Fix logic.")
+
+        result = True if True in determined else None
+        ident.value = result
+        return result
+
     
-    if found_rule is False:
-        print(f"No rule with {name} was found in conclusion, then it stays Undetermined")
-        result = None
-    
-    # if all conclusions lead to different values => contradictions
-    determined = [v for v in rule_results if v is not None]
-
-    # If there are multiple determined results that disagree, it's a contradiction
-    if len(determined) > 1 and any(v != determined[0] for v in determined):
-        raise ValueError("Contradiction in rule conclusions. Fix logic.")
-
-    if True in determined:
-        result = True
-
-    return result
-
-
-def backward_chaining(pr: ParseResult):
-    try:
-        for q in pr.queries:
-            print(f"Proving {q.name} : {q.value}")
-            if q.value == None:
-                q.value = prove(q, pr)
-    except Exception as e:
-        print("Error: ", e)
-        exit()
-        
+    def backward_chaining(self):
+        try:
+            for q in self.pr.queries:
+                print("---------------------------------------------------------")
+                print(f"Proving {q.name} : {q.value}")
+                if q.value == None:
+                    q.value = self.prove(goal=q)
+        except Exception as e:
+            print("Error: ", e)
+            exit()
