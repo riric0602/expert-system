@@ -29,7 +29,7 @@ class Engine:
                 expr.conclusion = replace(expr.conclusion)
                 return expr
 
-            if isinstance(expr, Eqv):
+            if isinstance(expr, Equiv):
                 expr.left = replace(expr.left)
                 expr.right = replace(expr.right)
                 return expr
@@ -78,13 +78,13 @@ class Engine:
         return None
 
 
-    def conclusion_contains(self, expr: Expr, goal: Ident):
+    def ident_in_expr(self, expr: Expr, goal: Ident):
         """Check if the conclusion expression contains the query."""
         if isinstance(expr, Ident):
             return expr.name == goal.name
 
         if isinstance(expr, (And, Or, Xor)):
-            return any(self.conclusion_contains(t, goal) for t in expr.terms)
+            return any(self.ident_in_expr(t, goal) for t in expr.terms)
 
         return False
 
@@ -122,33 +122,87 @@ class Engine:
 
         found_rule = False
         rule_results = []
+        result = None
 
         for rule, original_rule in zip(self.pr.rules, self.pr.original_rules):
-            if self.conclusion_contains(rule.conclusion, ident):
-                found_rule = True
-                premise_value = self.eval_expr(rule.premise, visited)
-
-                result = None
-                if isinstance(rule, Implies):
+            if isinstance(rule, Implies):
+                if self.ident_in_expr(rule.conclusion, ident):
+                    found_rule = True
+                    premise_value = self.eval_expr(rule.premise, visited)
                     result = True if premise_value is not False else None
 
-                rule_results.append(result)
+                    rule_results.append(result)
 
-                # Reasolution prints
-                idents = list(
-                    {i.name: i for i in self.idents_in_premise(rule.premise)}
-                    .values()
-                )
-                
-                print(f"We know that :")
-                for i in idents:
-                    print(f"{i.name} is {i.value}")
+                    # Reasolution prints
+                    idents = list(
+                        {i.name: i for i in self.idents_in_premise(rule.premise)}
+                        .values()
+                    )
+                    
+                    print(f"We know that :")
+                    for i in idents:
+                        print(f"{i.name} is {i.value}")
 
-                print("---------------------------------------------------------")
-                print("Conclusion") 
-                print("---------------------------------------------------------")
+                    print("---------------------------------------------------------")
+                    print("Conclusion") 
+                    print("---------------------------------------------------------")
 
-                print(f"Since we know {original_rule}, then {ident.name} is {result}")
+                    print(f"Since we know {original_rule}, then {ident.name} is {result}")
+
+            elif isinstance(rule, Equiv):
+                if self.ident_in_expr(rule.left, ident):
+                    found_rule = True
+                    right_value = self.eval_expr(rule.right, visited)
+
+                    if right_value:
+                        result = True
+                    else:
+                        result = False
+
+                    rule_results.append(result)
+
+                    # Reasolution prints
+                    idents = list(
+                        {i.name: i for i in self.idents_in_premise(rule.right)}
+                        .values()
+                    )
+                    
+                    print(f"We know that :")
+                    for i in idents:
+                        print(f"{i.name} is {i.value}")
+
+                    print("---------------------------------------------------------")
+                    print("Conclusion") 
+                    print("---------------------------------------------------------")
+
+                    print(f"Since we know {original_rule}, then {ident.name} is {result}")
+
+                elif self.ident_in_expr(rule.right, ident):
+                    found_rule = True
+                    left_value = self.eval_expr(rule.left, visited)
+
+                    if left_value:
+                        result = True
+                    else:
+                        result = False
+
+                    rule_results.append(result)
+
+                    # Reasolution prints
+                    idents = list(
+                        {i.name: i for i in self.idents_in_premise(rule.left)}
+                        .values()
+                    )
+                    
+                    print(f"We know that :")
+                    for i in idents:
+                        print(f"{i.name} is {i.value}")
+
+                    print("---------------------------------------------------------")
+                    print("Conclusion") 
+                    print("---------------------------------------------------------")
+
+                    print(f"Since we know {original_rule}, then {ident.name} is {result}")
         
         if not found_rule:
             ident.value = None
@@ -158,7 +212,13 @@ class Engine:
         if len(determined) > 1 and any(v != determined[0] for v in determined):
             raise ValueError("Contradiction in rule conclusions. Fix logic.")
 
-        result = True if True in determined else None
+        if True in determined:
+            result = True
+        elif False in determined:
+            result = False
+        else:
+            result = None
+
         ident.value = result
         return result
 

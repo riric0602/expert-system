@@ -4,17 +4,17 @@ from execution.exec import Engine
 if __name__ == "__main__":
     text = """
 # rules
-C => E
-A + (B | C) => D
-!(A + B) | (C ^ D) => E
 A <=> B
-A => B + C
+E <=> G
+A + D => E
+!(B + C) | (D ^ H) => F
+E => G
 
 # initial facts
-=AB
+=AC
 
 # queries
-?ED
+?FG
     """.strip("\n")
 
     pr = parse_input_lines(text.splitlines())
@@ -35,4 +35,4 @@ A => B + C
 
     print("---------------------------------------------------------")
     for q in pr.queries:
-        print(f"{q.name}: {'True' if q.value else 'False'}")
+        print(f"{q.name}: {q.value}")
