@@ -1,0 +1,10 @@
+A ^ B => C
+A ^ B <=> D
+U ^ V => E
+U ^ V <=> F
+A ^ U => X
+V ^ B <=> Z
+
+=AB
+
+?CDEFXZ
