@@ -93,7 +93,7 @@ class Parser:
 	# ----- Rule line parsers -----
 	# rule_line := expr 'IMPLIES' conclusion
 	# equiv_line := expr 'EQUIV' expr
-	# conclusion := IDENT ( 'AND' IDENT )*
+	# conclusion := expr  (allow NOT/OR/XOR in conclusions too)
 
 	def parse_rule_line(self) -> Implies:
 		prem = self.parse_expr()
@@ -109,19 +109,8 @@ class Parser:
 		return Equiv(left=left, right=right)
 
 	def parse_conclusion(self) -> Expr:
-		if not self.at("IDENT"):
-			t = self.cur()
-			where = t.index if t else -1
-			got = t.type if t else "EOF"
-			raise ValueError(f"Conclusion must start with IDENT, got {got} at {where}")
-		names: List[str] = [self.eat("IDENT").value]
-		while self.at("AND"):
-			self.eat("AND")
-			if not self.at("IDENT"):
-				raise ValueError("AND in conclusion must be followed by IDENT")
-			names.append(self.eat("IDENT").value)
-		idents = [Ident(n) for n in names]
-		return idents[0] if len(idents) == 1 else And(idents)
+		# Use full expression grammar so conclusions can include NOT and other operators.
+		return self.parse_expr()
 # ---- End of Parser class ----
 
 # =========
