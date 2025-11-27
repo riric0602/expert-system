@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from typing import List, Set, Union, Optional
 
+TRUE = True
+FALSE = False
+UNDETERMINED = None
+
 # Expr nodes
 class Expr: pass
 
@@ -87,3 +91,6 @@ class ParseResult:
 		for s in self.symbols:
 			if s.name in self.initial_facts:
 				s.value = True
+			elif s.name not in self.queries:
+				s.value = False
+				

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 from typing import List, Optional, Set, Union, Iterable
-import sys
-from pathlib import Path
-from data import	Expr,	\
+from .data import	Expr,	\
 					And, \
 					Or, \
 					Xor, \
@@ -13,7 +11,7 @@ from data import	Expr,	\
 					Implies, \
 					Equiv, \
 					ParseResult
-from lexer import Token, tokenize
+from .lexer import Token, tokenize
 
 # =========
 # PARSER CLASS
