@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
 
+import sys
+from pathlib import Path
 from typing import List, Optional, Set, Union, Iterable
-from .data import	Expr,	\
-					And, \
-					Or, \
-					Xor, \
-					Ident, \
-					Not, \
-					And, \
-					Implies, \
-					Equiv, \
-					ParseResult
-from .lexer import Token, tokenize
+
+# Allow running as a script or as part of the parsing package
+if __package__ is None:
+	sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from parsing.data import	Expr,	\
+							And, \
+							Or, \
+							Xor, \
+							Ident, \
+							Not, \
+							And, \
+							Implies, \
+							Equiv, \
+							ParseResult
+from parsing.lexer import Token, tokenize
 
 # =========
 # PARSER CLASS
@@ -94,7 +101,7 @@ class Parser:
 	# ----- Rule line parsers -----
 	# rule_line := expr 'IMPLIES' conclusion
 	# equiv_line := expr 'EQUIV' expr
-	# conclusion := IDENT ( 'AND' IDENT )*
+	# conclusion := expr  (allow NOT/OR/XOR in conclusions too)
 
 	def parse_rule_line(self) -> Implies:
 		prem = self.parse_expr()
@@ -110,19 +117,8 @@ class Parser:
 		return Equiv(left=left, right=right)
 
 	def parse_conclusion(self) -> Expr:
-		if not self.at("IDENT"):
-			t = self.cur()
-			where = t.index if t else -1
-			got = t.type if t else "EOF"
-			raise ValueError(f"Conclusion must start with IDENT, got {got} at {where}")
-		names: List[str] = [self.eat("IDENT").value]
-		while self.at("AND"):
-			self.eat("AND")
-			if not self.at("IDENT"):
-				raise ValueError("AND in conclusion must be followed by IDENT")
-			names.append(self.eat("IDENT").value)
-		idents = [Ident(n) for n in names]
-		return idents[0] if len(idents) == 1 else And(idents)
+		# Use full expression grammar so conclusions can include NOT and other operators.
+		return self.parse_expr()
 # ---- End of Parser class ----
 
 # =========
@@ -269,8 +265,8 @@ def pretty_rule(r: Union[Implies, Equiv]) -> str:
 
 def parser(path: str) -> ParseResult:
 	# Parse file given by path, otherwise default example
-	default_path = "examples/example.txt"
-	path = path if len(path) > 1 else default_path
+	default_path = Path(__file__).resolve().parent / "examples" / "example.txt"
+	path = path if path else str(default_path)
 	try:
 		lines = read_lines_from_file(path)
 	except ValueError as e:
@@ -293,8 +289,9 @@ def parser(path: str) -> ParseResult:
 # # =========
 if __name__ == "__main__":
 	# Parse file provided as first argument, otherwise default example
-	default_path = "examples/example.txt"
-	pr = parser(default_path)
+	default_path = Path(__file__).resolve().parent / "examples" / "example.txt"
+	input_path = sys.argv[1] if len(sys.argv) > 1 else str(default_path)
+	pr = parser(input_path)
 	for s in pr.original_rules:
 		print(s)
 	print("Rules:")
