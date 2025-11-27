@@ -148,8 +148,10 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 			collect(e.child)
 
 	for raw in lines:
-		line = raw.strip()
-		if not line or line.startswith("#"):
+		# Strip inline comments and surrounding whitespace
+		cleaned = raw.split("#", 1)[0].strip()
+		line = cleaned
+		if not line:
 			continue
 
 		# Initial facts: =ABCD
@@ -187,7 +189,7 @@ def parse_input_lines(lines: Iterable[str]) -> ParseResult:
 			duplicate_rules.add(normalized_rule)
 		else:
 			seen_rule_text.add(normalized_rule)
-		original_rules.append(raw)
+		original_rules.append(cleaned)
 		toks = tokenize(line)
 		p = Parser(toks)
 		if any(t.type == "EQUIV" for t in toks):
