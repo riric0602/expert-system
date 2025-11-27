@@ -118,8 +118,6 @@ class Engine:
             return None
         visited.add(ident.name)
 
-        print("Visited: ", visited)
-
         found_rule = False
         rule_results = []
         result = None
@@ -228,6 +226,7 @@ class Engine:
             for q in self.pr.queries:
                 print("---------------------------------------------------------")
                 print(f"Proving {q.name} : {q.value}")
+                print("---------------------------------------------------------")
                 if q.value == None:
                     q.value = self.prove(goal=q)
         except Exception as e:
