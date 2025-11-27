@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # This is a comment$
 # All the required rules and symbols, along with the bonus ones, will be
 # shown here. Spacing is not important$
@@ -19,3 +20,20 @@ A + B <=> !C # A and B if and only if not C$
 # by a newline is used.$
 
 ?GVX # Queries: What are G, V, and X?$
+=======
+C => E
+A + B + C => D
+A | B => C
+A + !B => F
+C | !G => H
+V ^ W => X  
+A + B => Y + Z
+C | D => X | V
+E + F => !V
+A + B <=> C
+A + B <=> !C
+
+=ABG
+
+?GVX
+>>>>>>> 2539f05 (input: re-worked the main and created file_utils.py in parsing)
