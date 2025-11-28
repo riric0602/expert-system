@@ -77,12 +77,9 @@ class Engine:
 
             # Collect all relevant Idents for this goal
             if isinstance(rule, Implies):
-                if isinstance(rule.conclusion, Ident) and self.ident_in_expr(rule.conclusion, ident):
-                    conclusions = [rule.conclusion]
-                else:
-                    for i in self.idents_in_expr(rule.conclusion):
-                        if i.name == ident.name:
-                            conclusions.append(i)
+                for i in self.idents_in_expr(rule.conclusion):
+                    if i.name == ident.name:
+                        conclusions.append(i)
             elif isinstance(rule, Equiv):
                 for side in [rule.left, rule.right]:
                     if self.ident_in_expr(side, ident):
