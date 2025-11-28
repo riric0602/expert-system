@@ -44,9 +44,11 @@ if __name__ == "__main__":
     print("Symbols:", pr.symbols)
     print("---------------------------------------------------------")
 
+    
+
     engine = Engine(pr)
-    engine.backward_chaining()
+    results = engine.backward_chaining()
 
     print("---------------------------------------------------------")
-    for q in pr.queries:
+    for q in results:
         print(f"{q.name}: {q.value}")

@@ -3,15 +3,15 @@ from parsing.data import *
 
 class Engine:
     def __init__(self, pr: ParseResult):
-        self.pr = pr
-        self.symbols = {}
+        self.rules = pr.rules
+        self.original_rules = pr.original_rules
+        self.symbols = { ident.name: ident for ident in pr.symbols }
+        self.queries = pr.queries
         self._normalize()
 
 
     def _normalize(self):
         """Create a shared Ident instance for every identifier and rewrite rules/queries."""
-        self.symbols = { ident.name: ident for ident in self.pr.symbols }
-
         def replace(expr):
             if isinstance(expr, Ident):
                 return self.symbols[expr.name]
@@ -36,13 +36,11 @@ class Engine:
 
             return expr
 
-        for r in self.pr.rules:
+        for r in self.rules:
             replace(r)
-
-        # force queries to use shared objects
-        for i, q in enumerate(self.pr.queries):
-            self.symbols[q.name] = self.pr.queries[i]
-
+        
+        for r in self.rules:
+            print(r)
 
     def eval_expr(self, expr, visited):
         if isinstance(expr, Ident):
@@ -122,7 +120,7 @@ class Engine:
         rule_results = []
         result = None
 
-        for rule, original_rule in zip(self.pr.rules, self.pr.original_rules):
+        for rule, original_rule in zip(self.rules, self.original_rules):
             if isinstance(rule, Implies):
                 if self.ident_in_expr(rule.conclusion, ident):
                     found_rule = True
@@ -223,12 +221,13 @@ class Engine:
     
     def backward_chaining(self):
         try:
-            for q in self.pr.queries:
+            for q in self.queries:
                 print("---------------------------------------------------------")
                 print(f"Proving {q.name} : {q.value}")
                 print("---------------------------------------------------------")
-                if q.value == None:
-                    q.value = self.prove(goal=q)
+                q.value = self.prove(goal=q)
         except Exception as e:
             print("Error: ", e)
             exit()
+
+        return self.queries
