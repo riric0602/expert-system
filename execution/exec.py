@@ -1,55 +1,19 @@
 from parsing.data import *
 
-
 class Engine:
     def __init__(self, pr: ParseResult):
         self.rules = pr.rules
         self.original_rules = pr.original_rules
         self.symbols = { ident.name: ident for ident in pr.symbols }
         self.queries = pr.queries
-        self._normalize()
 
-
-    def _normalize(self):
-        """Create a shared Ident instance for every identifier and rewrite rules/queries."""
-        def replace(expr):
-            if isinstance(expr, Ident):
-                return self.symbols[expr.name]
-
-            if isinstance(expr, Not):
-                expr.child = replace(expr.child)
-                return expr
-
-            if isinstance(expr, (And, Or, Xor)):
-                expr.terms = [replace(t) for t in expr.terms]
-                return expr
-
-            if isinstance(expr, Implies):
-                expr.premise = replace(expr.premise)
-                expr.conclusion = replace(expr.conclusion)
-                return expr
-
-            if isinstance(expr, Equiv):
-                expr.left = replace(expr.left)
-                expr.right = replace(expr.right)
-                return expr
-
-            return expr
-
-        for r in self.rules:
-            replace(r)
-        
-        for r in self.rules:
-            print(r)
 
     def eval_expr(self, expr, visited):
         if isinstance(expr, Ident):
             return self.prove(expr, visited)
-
         if isinstance(expr, Not):
             v = self.eval_expr(expr.child, visited)
             return None if v is None else not v
-
         if isinstance(expr, And):
             vals = [self.eval_expr(t, visited) for t in expr.terms]
             if any(v is False for v in vals):
@@ -57,7 +21,6 @@ class Engine:
             if any(v is None for v in vals):
                 return None
             return True
-
         if isinstance(expr, Or):
             vals = [self.eval_expr(t, visited) for t in expr.terms]
             if any(v is True for v in vals):
@@ -65,45 +28,36 @@ class Engine:
             if all(v is False for v in vals):
                 return False
             return None
-
         if isinstance(expr, Xor):
             l = self.eval_expr(expr.terms[0], visited)
             r = self.eval_expr(expr.terms[1], visited)
             if l is None or r is None:
                 return None
             return (l and not r) or (r and not l)
-
         return None
 
 
     def ident_in_expr(self, expr: Expr, goal: Ident):
-        """Check if the conclusion expression contains the query."""
         if isinstance(expr, Ident):
             return expr.name == goal.name
-
         if isinstance(expr, (And, Or, Xor)):
             return any(self.ident_in_expr(t, goal) for t in expr.terms)
-
         return False
 
 
-    def idents_in_premise(self, expr):
+    def idents_in_expr(self, expr):
         if isinstance(expr, Ident):
             return [expr]
-
         if isinstance(expr, Not):
-            return self.idents_in_premise(expr.child)
-
+            return self.idents_in_expr(expr.child)
         if isinstance(expr, (And, Or, Xor)):
             ids = []
             for t in expr.terms:
-                ids.extend(self.idents_in_premise(t))
+                ids.extend(self.idents_in_expr(t))
             return ids
-
         return []
 
 
-    # Backchaining Algorithm Functions
     def prove(self, goal: Ident, visited=None):
         ident = self.symbols[goal.name]
 
@@ -116,118 +70,73 @@ class Engine:
             return None
         visited.add(ident.name)
 
-        found_rule = False
         rule_results = []
-        result = None
 
         for rule, original_rule in zip(self.rules, self.original_rules):
+            conclusions = []
+
+            # Collect all relevant Idents for this goal
             if isinstance(rule, Implies):
-                if self.ident_in_expr(rule.conclusion, ident):
-                    found_rule = True
-                    premise_value = self.eval_expr(rule.premise, visited)
-                    result = True if premise_value is not False else None
-
-                    rule_results.append(result)
-
-                    # Reasolution prints
-                    idents = list(
-                        {i.name: i for i in self.idents_in_premise(rule.premise)}
-                        .values()
-                    )
-                    
-                    print(f"We know that :")
-                    for i in idents:
-                        print(f"{i.name} is {i.value}")
-
-                    print("---------------------------------------------------------")
-                    print("Conclusion") 
-                    print("---------------------------------------------------------")
-
-                    print(f"Since we know {original_rule}, then {ident.name} is {result}")
-
+                if isinstance(rule.conclusion, Ident) and self.ident_in_expr(rule.conclusion, ident):
+                    conclusions = [rule.conclusion]
+                else:
+                    for i in self.idents_in_expr(rule.conclusion):
+                        if i.name == ident.name:
+                            conclusions.append(i)
             elif isinstance(rule, Equiv):
-                if self.ident_in_expr(rule.left, ident):
-                    found_rule = True
-                    right_value = self.eval_expr(rule.right, visited)
+                for side in [rule.left, rule.right]:
+                    if self.ident_in_expr(side, ident):
+                        conclusions.append(side)
 
-                    if right_value:
-                        result = True
-                    else:
-                        result = False
+            if not conclusions:
+                continue
 
-                    rule_results.append(result)
+            # Evaluate premise
+            premise_value = None
+            if isinstance(rule, Implies):
+                premise_value = self.eval_expr(rule.premise, visited)
+            elif isinstance(rule, Equiv):
+                left_val = self.eval_expr(rule.left, visited)
+                right_val = self.eval_expr(rule.right, visited)
+                if left_val is None or right_val is None:
+                    premise_value = None
+                else:
+                    premise_value = left_val == right_val
 
-                    # Reasolution prints
-                    idents = list(
-                        {i.name: i for i in self.idents_in_premise(rule.right)}
-                        .values()
-                    )
-                    
-                    print(f"We know that :")
-                    for i in idents:
-                        print(f"{i.name} is {i.value}")
+            # Set result for each conclusion ident
+            for c in conclusions:
+                result = True if premise_value else None
+                self.symbols[c.name].value = result
+                rule_results.append(result)
 
-                    print("---------------------------------------------------------")
-                    print("Conclusion") 
-                    print("---------------------------------------------------------")
+                # LOGS: keep your resolution prints exactly
+                idents = list({i.name: i for i in self.idents_in_expr(c)}.values())
+                print(f"We know that :")
+                for i in idents:
+                    print(f"{i.name} is {i.value}")
+                print("---------------------------------------------------------")
+                print("Conclusion") 
+                print("---------------------------------------------------------")
+                print(f"Since we know {original_rule}, then {ident.name} is {result}")
 
-                    print(f"Since we know {original_rule}, then {ident.name} is {result}")
-
-                elif self.ident_in_expr(rule.right, ident):
-                    found_rule = True
-                    left_value = self.eval_expr(rule.left, visited)
-
-                    if left_value:
-                        result = True
-                    else:
-                        result = False
-
-                    rule_results.append(result)
-
-                    # Reasolution prints
-                    idents = list(
-                        {i.name: i for i in self.idents_in_premise(rule.left)}
-                        .values()
-                    )
-                    
-                    print(f"We know that :")
-                    for i in idents:
-                        print(f"{i.name} is {i.value}")
-
-                    print("---------------------------------------------------------")
-                    print("Conclusion") 
-                    print("---------------------------------------------------------")
-
-                    print(f"Since we know {original_rule}, then {ident.name} is {result}")
-        
-        if not found_rule:
-            ident.value = None
-            return None
-
+        # Resolve final value for goal
         determined = [v for v in rule_results if v is not None]
         if len(determined) > 1 and any(v != determined[0] for v in determined):
-            raise ValueError("Contradiction in rule conclusions. Fix logic.")
+            raise ValueError(f"Contradiction in rule conclusions for {goal.name}")
 
         if True in determined:
-            result = True
+            ident.value = True
         elif False in determined:
-            result = False
+            ident.value = False
         else:
-            result = None
+            ident.value = None
+        return ident.value
 
-        ident.value = result
-        return result
 
-    
     def backward_chaining(self):
-        try:
-            for q in self.queries:
-                print("---------------------------------------------------------")
-                print(f"Proving {q.name} : {q.value}")
-                print("---------------------------------------------------------")
-                q.value = self.prove(goal=q)
-        except Exception as e:
-            print("Error: ", e)
-            exit()
-
+        for q in self.queries:
+            print("---------------------------------------------------------")
+            print(f"Proving {q.name} : {q.value}")
+            print("---------------------------------------------------------")
+            q.value = self.prove(q)
         return self.queries
