@@ -88,9 +88,12 @@ class ParseResult:
 		for q in self.queries:
 			if q.name in self.initial_facts:
 				q.value = True
+
 		for s in self.symbols:
 			if s.name in self.initial_facts:
 				s.value = True
-			elif s.name not in self.queries:
+			elif s.name in query_names:
+				s.value = None
+			else:
 				s.value = False
 				
