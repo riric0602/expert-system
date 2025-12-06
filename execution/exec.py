@@ -140,10 +140,14 @@ class Engine:
 
 
     def backward_chaining(self):
-        for q in self.queries:
-            print("=========================================================")
-            print(f"Proving {q.name} : {q.value}")
-            print("=========================================================")
-            q.value = self.prove(q)
-            print(f"Final deduced value: {q.name} = {q.value}\n")
+        try:
+            for q in self.queries:
+                print("=========================================================")
+                print(f"Proving {q.name} : {q.value}")
+                print("=========================================================")
+                q.value = self.prove(q)
+                print(f"Final deduced value: {q.name} = {q.value}\n")
+        except ValueError as e:
+            print("Error:", e)
+            exit(1)
         return self.queries
