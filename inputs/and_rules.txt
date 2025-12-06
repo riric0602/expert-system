@@ -10,10 +10,10 @@ U + V => E
 # U and V are False <=> F is False
 U + V <=> F
 
-# A is True And U is False : False => X is Undetermined
+# A is True and U is False : False => X is Undetermined
 A + U => X
 
-# V is False And B is True : False <=> Z is False
+# V is False and B is True : False <=> Z is False
 V + B <=> Z
 
 =AB

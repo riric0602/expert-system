@@ -1,0 +1,21 @@
+# A or B are True => C True
+A | B => C
+
+# A or B are True <=> D is True
+A | B <=> D
+
+# U or V are False => E is Undetermined
+U | V => E
+
+# U or V are False <=> F is False
+U | V <=> F
+
+# A is True or U is False : True => X is True
+A | U => X
+
+# V is False or B is True : True <=> Z is True
+V | B <=> Z
+
+=AB
+
+?CDEFXZ
