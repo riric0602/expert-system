@@ -73,19 +73,19 @@ class Engine:
         rule_results = []
 
         for rule, original_rule in zip(self.rules, self.original_rules):
-            conclusions = []
+            goal_rules = []
 
             # Collect all relevant Idents for this goal
             if isinstance(rule, Implies):
                 for i in self.idents_in_expr(rule.conclusion):
                     if i.name == ident.name:
-                        conclusions.append(i)
+                        goal_rules.append(rule)
             elif isinstance(rule, Equiv):
                 for side in [rule.left, rule.right]:
                     if self.ident_in_expr(side, ident):
-                        conclusions.append(side)
+                        goal_rules.append(rule)
 
-            if not conclusions:
+            if not goal_rules:
                 continue
 
             # Evaluate premise
@@ -97,17 +97,21 @@ class Engine:
                 right_val = self.eval_expr(rule.right, visited)
                 if left_val is None or right_val is None:
                     premise_value = None
+                elif left_val != right_val:
+                    raise ValueError(
+                        f"Equivalence contradiction: "
+                        f"{rule.left} is {left_val}, {rule.right} is {right_val}"
+                    )
                 else:
-                    premise_value = left_val == right_val
+                    premise_value = left_val
 
             # Set result for each conclusion ident
-            for c in conclusions:
+            for r in goal_rules:
                 result = True if premise_value else None
-                self.symbols[c.name].value = result
                 rule_results.append(result)
 
                 # LOGS: keep your resolution prints exactly
-                idents = list({i.name: i for i in self.idents_in_expr(c)}.values())
+                idents = list({i.name: i for i in self.idents_in_expr(r)}.values())
                 print(f"We know that :")
                 for i in idents:
                     print(f"{i.name} is {i.value}")

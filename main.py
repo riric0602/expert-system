@@ -11,29 +11,6 @@ if __name__ == "__main__":
         
     pr = parser(path)
 
-    # text = """
-    # # rules
-    # C => E
-    # A + B + C => D
-    # A | B => C
-    # A + !B => F
-    # C | !G => H
-    # V ^ W => X  
-    # A + B => Y + Z
-    # C | D => X | V
-    # A + B <=> C
-    # A + B <=> !C
-
-    # =ABG
-
-    # ?C
-    #     """.strip("\n")
-
-    # pr = parse_input_lines(text.splitlines())
-
-    # # Set identifiers value based on facts
-    # pr.set_identifiers()
-
     for s in pr.original_rules:
         print(s)
     for r in pr.rules:
@@ -43,8 +20,6 @@ if __name__ == "__main__":
     print(f"Queries: {pr.queries}")
     print("Symbols:", pr.symbols)
     print("---------------------------------------------------------")
-
-    
 
     engine = Engine(pr)
     results = engine.backward_chaining()
