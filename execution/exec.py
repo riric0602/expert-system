@@ -4,7 +4,7 @@ class Engine:
     def __init__(self, pr: ParseResult):
         self.rules = pr.rules
         self.original_rules = pr.original_rules
-        self.symbols = { ident.name: ident for ident in pr.symbols }
+        self.symbols = {ident.name: ident for ident in pr.symbols}
         self.queries = pr.queries
 
 
@@ -37,14 +37,6 @@ class Engine:
         return None
 
 
-    def ident_in_expr(self, expr: Expr, goal: Ident):
-        if isinstance(expr, Ident):
-            return expr.name == goal.name
-        if isinstance(expr, (And, Or, Xor)):
-            return any(self.ident_in_expr(t, goal) for t in expr.terms)
-        return False
-
-
     def idents_in_expr(self, expr):
         if isinstance(expr, Ident):
             return [expr]
@@ -55,7 +47,15 @@ class Engine:
             for t in expr.terms:
                 ids.extend(self.idents_in_expr(t))
             return ids
+        if isinstance(expr, Implies):
+            return self.idents_in_expr(expr.premise) + self.idents_in_expr(expr.conclusion)
+        if isinstance(expr, Equiv):
+            return self.idents_in_expr(expr.left) + self.idents_in_expr(expr.right)
         return []
+
+
+    def ident_in_expr(self, expr, goal):
+        return any(i.name == goal.name for i in self.idents_in_expr(expr))
 
 
     def prove(self, goal: Ident, visited=None):
@@ -63,7 +63,6 @@ class Engine:
 
         if ident.value is not None:
             return ident.value
-
         if visited is None:
             visited = set()
         if ident.name in visited:
@@ -73,58 +72,64 @@ class Engine:
         rule_results = []
 
         for rule, original_rule in zip(self.rules, self.original_rules):
-            goal_rules = []
-
-            # Collect all relevant Idents for this goal
+            goal_in_rule = False
             if isinstance(rule, Implies):
-                for i in self.idents_in_expr(rule.conclusion):
-                    if i.name == ident.name:
-                        goal_rules.append(rule)
+                goal_in_rule = self.ident_in_expr(rule.conclusion, ident)
             elif isinstance(rule, Equiv):
-                for side in [rule.left, rule.right]:
-                    if self.ident_in_expr(side, ident):
-                        goal_rules.append(rule)
-
-            if not goal_rules:
+                goal_in_rule = self.ident_in_expr(rule.left, ident) or self.ident_in_expr(rule.right, ident)
+            if not goal_in_rule:
                 continue
 
-            # Evaluate premise
+            # Evaluate premise or sides
             premise_value = None
             if isinstance(rule, Implies):
                 premise_value = self.eval_expr(rule.premise, visited)
             elif isinstance(rule, Equiv):
-                left_val = self.eval_expr(rule.left, visited)
-                right_val = self.eval_expr(rule.right, visited)
-                if left_val is None or right_val is None:
-                    premise_value = None
-                elif left_val != right_val:
-                    raise ValueError(
-                        f"Equivalence contradiction: "
-                        f"{rule.left} is {left_val}, {rule.right} is {right_val}"
-                    )
+                if self.ident_in_expr(rule.left, ident):
+                    premise_value = self.eval_expr(rule.right, visited)
+                elif self.ident_in_expr(rule.right, ident):
+                    premise_value = self.eval_expr(rule.left, visited)
                 else:
-                    premise_value = left_val
+                    premise_value = None
 
-            # Set result for each conclusion ident
-            for r in goal_rules:
-                result = True if premise_value else None
-                rule_results.append(result)
+            # Deduce goal value
+            result = None
+            if premise_value is not None:
+                # For Implies: True premise → conclusion true
+                if isinstance(rule, Implies):
+                    if self.ident_in_expr(rule.conclusion, ident):
+                        if isinstance(rule.conclusion, Ident):
+                            if premise_value is True:
+                                result = True
+                            else:
+                                result = None
+                        else:
+                            result = self.eval_expr(rule.conclusion, visited)
+                        if premise_value is True and result is False:
+                            raise ValueError(f"Contradiction in rule: {original_rule}")
+                elif isinstance(rule, Equiv):
+                    result = premise_value
 
-                # LOGS: keep your resolution prints exactly
-                idents = list({i.name: i for i in self.idents_in_expr(r)}.values())
-                print(f"We know that :")
-                for i in idents:
-                    print(f"{i.name} is {i.value}")
-                print("---------------------------------------------------------")
-                print("Conclusion") 
-                print("---------------------------------------------------------")
-                print(f"Since we know {original_rule}, then {ident.name} is {result}")
+            rule_results.append(result)
 
-        # Resolve final value for goal
+            # --- Reasoning log ---
+            print("---------------------------------------------------------")
+            if isinstance(rule, Implies):
+                print("Premise:")
+                for t in self.idents_in_expr(rule.premise):
+                    print(f"  {t.name} = {t.value}")
+                print(f"Applied rule: {original_rule}")
+            elif isinstance(rule, Equiv):
+                print("Equivalence:")
+                goal_side = "Left" if self.ident_in_expr(rule.left, ident) else "Right"
+                print(f"Goal {ident.name} is on {goal_side} side")
+            print(f"Goal {ident.name} deduced as {result}")
+            print("---------------------------------------------------------")
+
+        # Resolve final value
         determined = [v for v in rule_results if v is not None]
         if len(determined) > 1 and any(v != determined[0] for v in determined):
-            raise ValueError(f"Contradiction in rule conclusions for {goal.name}")
-
+            raise ValueError(f"Contradiction in rules for {goal.name}")
         if True in determined:
             ident.value = True
         elif False in determined:
@@ -136,8 +141,9 @@ class Engine:
 
     def backward_chaining(self):
         for q in self.queries:
-            print("---------------------------------------------------------")
+            print("=========================================================")
             print(f"Proving {q.name} : {q.value}")
-            print("---------------------------------------------------------")
+            print("=========================================================")
             q.value = self.prove(q)
+            print(f"Final deduced value: {q.name} = {q.value}\n")
         return self.queries
