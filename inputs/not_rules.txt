@@ -1,0 +1,21 @@
+# not A (True) : False => D is Undetermined
+!A => D
+
+# not B (True) : False <=> E is False
+!B <=> E
+
+# not U (False) : True => F is True
+!U => F
+
+# not V (False) : True <=> X is True
+!V <=> X
+
+# not (A and B) (True) : False => Y is Undetermined
+!(A + B) => Y
+
+# not (U or V) (False) : True <=> Z is True
+!(U | V) <=> Z
+
+=AB
+
+?DEFXYZ
