@@ -1,0 +1,27 @@
+# A (True) xor B (True) : False => C Undetermined
+A ^ B => C
+
+# A (True) xor B (True) : False <=> D is False
+A ^ B <=> D
+
+# U (False) xor V (False) : False => E is Undetermined
+U ^ V => E
+
+# U (False) xor V (False) : False <=> F is False
+U ^ V <=> F
+
+# A (True) xor U (False) : True => X is True
+A ^ U => X
+
+# V (False) xor B (True) : True <=> Z is True
+V ^ B <=> Z
+
+# (A ^ B) is False xor (U ^ V) False : False => Y is Undetermined
+(A ^ B) ^ (U ^ V) => Y
+
+# A ^ U ^ B ^ V : True ^ False ^ True ^ False : False <=> W is False
+A ^ U ^ B ^ V <=> W
+
+=AB
+
+?CDEFXZYW

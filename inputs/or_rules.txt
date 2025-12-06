@@ -1,21 +1,27 @@
-# A or B are True => C True
+# A (True) or B (True) : True => C True
 A | B => C
 
-# A or B are True <=> D is True
+# A (True) or B (True) : True <=> D is True
 A | B <=> D
 
-# U or V are False => E is Undetermined
+# U (False) or V (False) : False => E is Undetermined
 U | V => E
 
-# U or V are False <=> F is False
+# U (False) or V (False) : False <=> F is False
 U | V <=> F
 
-# A is True or U is False : True => X is True
+# A (True) or U (False) : True => X is True
 A | U => X
 
-# V is False or B is True : True <=> Z is True
+# V (False) or B (True) : True <=> Z is True
 V | B <=> Z
+
+# (A | B) is True or (U | V) False : True => Y is True
+(A | B) | (U | V) => Y
+
+# A | U | B | V is True <=> W is True
+A | U | B | V <=> W
 
 =AB
 
-?CDEFXZ
+?CDEFXZYW
