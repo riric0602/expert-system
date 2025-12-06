@@ -29,11 +29,15 @@ class Engine:
                 return False
             return None
         if isinstance(expr, Xor):
-            l = self.eval_expr(expr.terms[0], visited)
-            r = self.eval_expr(expr.terms[1], visited)
-            if l is None or r is None:
+            vals = [self.eval_expr(t, visited) for t in expr.terms]
+            if any(v is None for v in vals):
                 return None
-            return (l and not r) or (r and not l)
+            # XOR all values
+            result = False
+            for v in vals:
+                result ^= v
+            return result
+
         return None
 
 
@@ -108,7 +112,22 @@ class Engine:
                         if premise_value is True and result is False:
                             raise ValueError(f"Contradiction in rule: {original_rule}")
                 elif isinstance(rule, Equiv):
-                    result = premise_value
+                    if self.ident_in_expr(rule.left, ident):
+                        other_val = self.eval_expr(rule.right, visited)
+                        if other_val is not None:
+                            # Deduce goal from equivalence
+                            result = other_val
+                        else:
+                            result = None
+                    elif self.ident_in_expr(rule.right, ident):
+                        other_val = self.eval_expr(rule.left, visited)
+                        if other_val is not None:
+                            result = other_val
+                        else:
+                            result = None
+                    else:
+                        result = None
+
 
             rule_results.append(result)
 
