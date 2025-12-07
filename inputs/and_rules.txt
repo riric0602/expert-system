@@ -19,7 +19,7 @@ V + B <=> Z
 # (A + B) is True and (U + V) False : False => Y is Undetermined
 (A + B) + (U + V) => Y
 
-# A + U + B + V is False <=> M is False
+# A + U + B + V is False <=> W is False
 A + U + B + V <=> W
 
 =AB
