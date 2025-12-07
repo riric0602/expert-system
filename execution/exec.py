@@ -8,6 +8,12 @@ class Engine:
         self.queries = pr.queries
 
 
+    def is_not_query(self, ident: Ident) -> bool:
+        if ident.value is not True and ident.name not in [q.name for q in self.queries]:
+            return True
+        return False
+        
+
     def eval_expr(self, expr, visited):
         if isinstance(expr, Ident):
             return self.prove(expr, visited)
@@ -64,13 +70,18 @@ class Engine:
 
     def prove(self, goal: Ident, visited=None):
         ident = self.symbols[goal.name]
+        is_false_fact = self.is_not_query(ident)
 
         if ident.value is not None:
             return ident.value
         if visited is None:
             visited = set()
         if ident.name in visited:
-            return None
+            if is_false_fact:
+                ident.value = False
+            else:
+                ident.value = None
+            return ident.value
         visited.add(ident.name)
 
         rule_results = []
@@ -109,8 +120,6 @@ class Engine:
                                 result = None
                         else:
                             result = self.eval_expr(rule.conclusion, visited)
-                        if premise_value is True and result is False:
-                            raise ValueError(f"Contradiction in rule: {original_rule}")
                 elif isinstance(rule, Equiv):
                     if self.ident_in_expr(rule.left, ident):
                         other_val = self.eval_expr(rule.right, visited)
@@ -136,7 +145,8 @@ class Engine:
             if isinstance(rule, Implies):
                 print("Premise:")
                 for t in self.idents_in_expr(rule.premise):
-                    print(f"  {t.name} = {t.value}")
+                    value = self.symbols[t.name].value if t.name in self.symbols else None
+                    print(f"  {t.name} = {value}")
                 print(f"Applied rule: {original_rule}")
             elif isinstance(rule, Equiv):
                 print("Equivalence:")
@@ -155,6 +165,10 @@ class Engine:
             ident.value = False
         else:
             ident.value = None
+
+        if ident.value is None and is_false_fact:
+            ident.value = False
+
         return ident.value
 
 
