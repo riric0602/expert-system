@@ -117,7 +117,7 @@ class Engine:
                             if premise_value is True:
                                 result = True
                             else:
-                                result = None
+                                result = False
                         else:
                             result = self.eval_expr(rule.conclusion, visited)
                 elif isinstance(rule, Equiv):
