@@ -7,21 +7,21 @@ A ^ B <=> D
 # U (False) xor V (False) : False => E is Undetermined
 U ^ V => E
 
-# U (False) xor V (False) : False <=> F is False
-U ^ V <=> F
+# X (False) xor Z (False) : False <=> F is False
+X ^ Z <=> F
 
-# A (True) xor U (False) : True => X is True
-A ^ U => X
+# A (True) xor Y (False) : True => I is True
+A ^ Y => I
 
-# V (False) xor B (True) : True <=> Z is True
-V ^ B <=> Z
+# G (False) xor B (True) : True <=> J is True
+G ^ B <=> J
 
-# (A ^ B) is False xor (U ^ V) False : False => Y is Undetermined
-(A ^ B) ^ (U ^ V) => Y
+# (A ^ B) is False xor (H ^ W) False : False => K is Undetermined
+(A ^ B) ^ (H ^ W) => K
 
-# A ^ U ^ B ^ V : True ^ False ^ True ^ False : False <=> W is False
-A ^ U ^ B ^ V <=> W
+# A ^ O ^ B ^ P : True ^ False ^ True ^ False : False <=> L is False
+A ^ O ^ B ^ P <=> L
 
 =AB
 
-?CDEFXZYW
+?CDEFIJKL

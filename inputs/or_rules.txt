@@ -7,21 +7,23 @@ A | B <=> D
 # U (False) or V (False) : False => E is Undetermined
 U | V => E
 
-# U (False) or V (False) : False <=> F is False
-U | V <=> F
+# X (False) or Z (False) : False <=> F is False
+X | Z <=> F
 
-# A (True) or U (False) : True => X is True
-A | U => X
+# A (True) or G (False) : True => I is True
+A | G => I
 
-# V (False) or B (True) : True <=> Z is True
-V | B <=> Z
+# H (False) or B (True) : True <=> J is True
+H | B <=> J
 
-# (A | B) is True or (U | V) False : True => Y is True
-(A | B) | (U | V) => Y
+# (A | B) is True or (Y | W) False : True => K is True
+(A | B) | (Y | W) => K
 
-# A | U | B | V is True <=> W is True
-A | U | B | V <=> W
+# A | O | B | P is True <=> L is True
+A | O | B | P <=> L
 
 =AB
 
-?CDEFXZYW
+# U, V, X, Z, G, H, Y, W, O, P cannot be deduced so False
+
+?CDEFIJKL

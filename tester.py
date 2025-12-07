@@ -9,20 +9,18 @@ tests = {
         "D": True,
         "E": None,
         "F": False,
-        "X": None,
-        "Z": False,
-        "Y": None,
-        "W": False
+        "I": None,
+        "J": False,
     },
     "inputs/or_rules.txt": {
         "C": True,
         "D": True,
         "E": None,
         "F": False,
-        "X": True,
-        "Z": True,
-        "Y": True,
-        "W": True
+        "I": True,
+        "J": True,
+        "K": True,
+        "L": True
     },
     "inputs/xor_rules.txt": {
         "C": None,

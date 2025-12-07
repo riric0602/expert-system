@@ -13,8 +13,8 @@
 # not (A and B) (True) : False => Y is Undetermined
 !(A + B) => Y
 
-# not (U or V) (False) : True <=> Z is True
-!(U | V) <=> Z
+# not (G or H) (False) : True <=> Z is True
+!(G | H) <=> Z
 
 =AB
 

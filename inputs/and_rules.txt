@@ -8,20 +8,16 @@ A + B <=> D
 U + V => E
 
 # U (False) and V (False) : False <=> F is False
-U + V <=> F
+X + Z <=> F
 
-# A (True) and U (False) : False => X is Undetermined
-A + U => X
+# (A + B) is True and (U + V) False : False => I is Undetermined
+(A + B) + (Y + W) => I
 
-# V (False) and B (True) : False <=> Z is False
-V + B <=> Z
-
-# (A + B) is True and (U + V) False : False => Y is Undetermined
-(A + B) + (U + V) => Y
-
-# A + U + B + V is False <=> W is False
-A + U + B + V <=> W
+# A + U + B + V is False <=> J is False
+A + G + B + H <=> J
 
 =AB
 
-?CDEFXZYW
+# U, V, X, Z, G, H, Y, W cannot be deduced so False
+
+?CDEFIJ
