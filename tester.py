@@ -2,20 +2,19 @@ from execution.exec import Engine
 from parsing.file_utils import parser
 import os
 
-# Define tests: map input file to expected query results
 tests = {
     "inputs/and_rules.txt": {
         "C": True,
         "D": True,
-        "E": None,
+        "E": False,
         "F": False,
-        "I": None,
+        "I": False,
         "J": False,
     },
     "inputs/or_rules.txt": {
         "C": True,
         "D": True,
-        "E": None,
+        "E": False,
         "F": False,
         "I": True,
         "J": True,
@@ -23,14 +22,14 @@ tests = {
         "L": True
     },
     "inputs/xor_rules.txt": {
-        "C": None,
+        "C": False,
         "D": False,
-        "E": None,
+        "E": False,
         "F": False,
-        "X": True,
-        "Z": True,
-        "Y": None,
-        "W": False
+        "I": True,
+        "J": True,
+        "K": False,
+        "L": False
     },
     "inputs/not_rules.txt": {
         "D": None,
@@ -76,7 +75,9 @@ if __name__ == "__main__":
     for r in summary:
         print(f"Test: {r['file']}")
         print(f"Passed: {'✅' if r['passed'] else '❌'}")
-        print("Results vs Expected:")
-        for k in r['results']:
-            print(f"  {k}: got {r['results'][k]}, expected {r['expected'].get(k)}")
+        if not r['passed']:
+            for k in r['results']:
+                if r['results'][k] != r['expected'].get(k):
+                    print("Results vs Expected:")
+                    print(f"  {k}: got {r['results'][k]}, expected {r['expected'].get(k)}")
         print("---------------------------------------------------------")

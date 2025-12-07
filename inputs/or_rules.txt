@@ -4,7 +4,7 @@ A | B => C
 # A (True) or B (True) : True <=> D is True
 A | B <=> D
 
-# U (False) or V (False) : False => E is Undetermined
+# U (False) or V (False) : False => E is False
 U | V => E
 
 # X (False) or Z (False) : False <=> F is False

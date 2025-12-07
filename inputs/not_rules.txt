@@ -1,4 +1,4 @@
-# not A (True) : False => D is Undetermined
+# not A (True) : False => D is False
 !A => D
 
 # not B (True) : False <=> E is False
@@ -10,7 +10,7 @@
 # not V (False) : True <=> X is True
 !V <=> X
 
-# not (A and B) (True) : False => Y is Undetermined
+# not (A and B) (True) : False => Y is False
 !(A + B) => Y
 
 # not (G or H) (False) : True <=> Z is True
