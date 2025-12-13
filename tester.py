@@ -3,7 +3,7 @@ from parsing.file_utils import parser
 import os
 
 tests = {
-    "inputs/and_rules.txt": {
+    "inputs/unit_tests/and_rules.txt": {
         "C": True,
         "D": True,
         "E": False,
@@ -11,7 +11,7 @@ tests = {
         "I": False,
         "J": False,
     },
-    "inputs/or_rules.txt": {
+    "inputs/unit_tests/or_rules.txt": {
         "C": True,
         "D": True,
         "E": False,
@@ -21,7 +21,7 @@ tests = {
         "K": True,
         "L": True
     },
-    "inputs/xor_rules.txt": {
+    "inputs/unit_tests/xor_rules.txt": {
         "C": False,
         "D": False,
         "E": False,
@@ -31,7 +31,7 @@ tests = {
         "K": False,
         "L": False
     },
-    "inputs/not_rules.txt": {
+    "inputs/unit_tests/not_rules.txt": {
         "D": None,
         "E": False,
         "F": True,

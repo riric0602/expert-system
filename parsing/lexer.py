@@ -56,22 +56,3 @@ def tokenize(text: str) -> List[Token]:
 		tokens.append(Token(token_type, value if token_type in {"IDENT"} else None, m.start()))
 		i = m.end()
 	return tokens
-
-# if __name__ == "__main__":
-# 	tests = [
-# 		"A + (B | C) => D",
-# 		"!B",
-# 		"A + B",
-# 		"A | B",
-# 		"A ˆ B",       # unicode ˆ
-# 		"A ^ B",       # ascii ^
-# 		"A + B <=> C",
-# 	]
-# 	for s in tests:
-# 		print(f"Input: {s}")
-# 		try:
-# 			ts = tokenize(s)
-# 			print("Tokens:", ts)
-# 		except ValueError as e:
-# 			print("Lexer error:", e)
-# 		print()

@@ -65,6 +65,7 @@ class Engine:
     def is_not_query(self, ident: Ident) -> bool:
         return ident.value is not True and ident.name not in [q.name for q in self.queries]
 
+
     def idents_in_expr(self, expr):
         if isinstance(expr, Ident):
             return [expr]
@@ -80,12 +81,15 @@ class Engine:
         if isinstance(expr, Equiv):
             return self.idents_in_expr(expr.left) + self.idents_in_expr(expr.right)
         return []
+
 
     def ident_in_expr(self, expr, goal):
         return any(i.name == goal.name for i in self.idents_in_expr(expr))
     
+
     def is_not_query(self, ident: Ident) -> bool:
         return ident.value is not True and ident.name not in [q.name for q in self.queries]
+
 
     def idents_in_expr(self, expr):
         if isinstance(expr, Ident):
@@ -102,6 +106,7 @@ class Engine:
         if isinstance(expr, Equiv):
             return self.idents_in_expr(expr.left) + self.idents_in_expr(expr.right)
         return []
+
 
     def ident_in_expr(self, expr, goal):
         return any(i.name == goal.name for i in self.idents_in_expr(expr))
@@ -178,8 +183,8 @@ class Engine:
                 premise_value = self.eval_expr(rule.premise, visited)
                 if premise_value is True:
                     result = True
-                elif premise_value is False:
-                    result = False
+                else:
+                    None
 
             elif isinstance(rule, Equiv):
                 if self.ident_in_expr(rule.left, ident):
@@ -203,10 +208,8 @@ class Engine:
 
         if True in determined:
             ident.value = True
-        elif False in determined:
-            ident.value = False
         else:
-            ident.value = False if is_false_fact else None
+            ident.value = False
 
         return ident.value
 
