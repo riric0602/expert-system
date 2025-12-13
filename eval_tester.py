@@ -82,7 +82,7 @@ tests = {
         "E": False
     },
     "inputs/eval_tests/parentheses/24.txt": {
-        "E": False
+        "E": True
     },
     "inputs/eval_tests/parentheses/25.txt": {
         "E": True
