@@ -3,6 +3,7 @@ from parsing.file_utils import parser
 import os
 
 tests = {
+    # Unit tests
     "inputs/unit_tests/and_rules.txt": {
         "C": True,
         "D": True,
@@ -38,6 +39,24 @@ tests = {
         "X": True,
         "Y": None,
         "Z": True
+    },
+    # Complex tests
+    "inputs/complex_tests/and_conclusions/1.txt": {
+        "A": True,
+        "B": True,
+        "C": True
+    },
+    "inputs/complex_tests/and_conclusions/2.txt": {
+        "I": True,
+        "J": True,
+        "K": True,
+        "M": False,
+    },
+    "inputs/complex_tests/and_conclusions/3.txt": {
+        "N": False,
+        "O": True,
+        "P": False,
+        "R": False,
     },
 }
 
