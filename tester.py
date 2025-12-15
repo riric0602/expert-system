@@ -58,6 +58,18 @@ tests = {
         "P": False,
         "R": False,
     },
+    "inputs/complex_tests/negation/4.txt": {
+        "B": True,
+        "C": True,
+    },
+    "inputs/complex_tests/negation/5.txt": {
+        "B": False,
+        "C": False,
+    },
+    "inputs/complex_tests/negation/6.txt": {
+        "B": False,
+        "C": False,
+    },
 }
 
 def run_test(file_path, expected):

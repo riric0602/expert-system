@@ -21,7 +21,7 @@ class Engine:
         self.symbols = {ident.name: ident for ident in pr.symbols}
         self.queries = pr.queries
 
-        self.fact_nodes = {}
+        self.symbol_nodes = {}
         self.rule_nodes = []
 
         self.build_graph()
@@ -33,7 +33,7 @@ class Engine:
     def build_graph(self):
         # Create fact nodes
         for ident in self.symbols.values():
-            self.fact_nodes[ident.name] = SymbolNode(ident)
+            self.symbol_nodes[ident.name] = SymbolNode(ident)
 
         # Create rule nodes and link graph
         for rule, original in zip(self.rules, self.original_rules):
@@ -53,10 +53,10 @@ class Engine:
             self.rule_nodes.append(rn)
 
             for i in rn.premise_idents:
-                self.fact_nodes[i.name].used_in_rules.append(rn)
+                self.symbol_nodes[i.name].used_in_rules.append(rn)
 
             for i in rn.conclusion_idents:
-                self.fact_nodes[i.name].produced_by_rules.append(rn)
+                self.symbol_nodes[i.name].produced_by_rules.append(rn)
 
     # --------------------------------------------------
     # Utils
@@ -155,8 +155,8 @@ class Engine:
         # --------------------------------------------------
 
     def prove(self, goal: Ident, visited=None):
-        fact_node = self.fact_nodes[goal.name]
-        ident = fact_node.ident
+        symbol_node = self.symbol_nodes[goal.name]
+        ident = symbol_node.ident
         is_false_fact = self.is_not_query(ident)
 
         # Known value
@@ -175,7 +175,7 @@ class Engine:
         results = []
 
         # Only rules that can produce this fact
-        for rn in fact_node.produced_by_rules:
+        for rn in symbol_node.produced_by_rules:
             rule = rn.rule
             result = None
 
