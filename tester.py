@@ -41,6 +41,7 @@ tests = {
         "Z": True
     },
     # Complex tests
+    # And in conclusions
     "inputs/complex_tests/and_conclusions/1.txt": {
         "A": True,
         "B": True,
@@ -58,58 +59,91 @@ tests = {
         "P": False,
         "R": False,
     },
-    "inputs/complex_tests/negation/4.txt": {
+    # Negation
+    "inputs/complex_tests/negation/1.txt": {
         "B": True,
         "C": True,
     },
-    "inputs/complex_tests/negation/5.txt": {
+    "inputs/complex_tests/negation/2.txt": {
         "B": False,
         "C": False,
     },
-    "inputs/complex_tests/negation/6.txt": {
+    "inputs/complex_tests/negation/3.txt": {
         "B": False,
         "C": False,
     },
-    "inputs/complex_tests/or_conditions/7.txt": {
+    # Or conditions
+    "inputs/complex_tests/or_conditions/1.txt": {
         "C": False,
     },
-    "inputs/complex_tests/or_conditions/8.txt": {
+    "inputs/complex_tests/or_conditions/2.txt": {
         "E": False,
     },
-    "inputs/complex_tests/or_conditions/9.txt": {
+    "inputs/complex_tests/or_conditions/3.txt": {
         "F": True,
     },
-    "inputs/complex_tests/or_conditions/10.txt": {
+    "inputs/complex_tests/or_conditions/4.txt": {
         "C": True,
         "D": True,
         "F": False
     },
-    "inputs/complex_tests/parentheses/11.txt": {
+    # Parentheses
+    "inputs/complex_tests/parentheses/1.txt": {
         "C": True,
         "E": False
     },
-    "inputs/complex_tests/parentheses/12.txt": {
+    "inputs/complex_tests/parentheses/2.txt": {
         "D": True,
         "E": False
     },
-    "inputs/complex_tests/parentheses/13.txt": {
+    "inputs/complex_tests/parentheses/3.txt": {
         "E": False,
         "H": True
     },
-    "inputs/complex_tests/parentheses/14.txt": {
+    "inputs/complex_tests/parentheses/4.txt": {
         "D": True,
         "F": True
     },
-    "inputs/complex_tests/parentheses/15.txt": {
+    "inputs/complex_tests/parentheses/5.txt": {
         "A": True,
         "B": False,
         "C": True
     },
-    "inputs/complex_tests/parentheses/16.txt": {
+    "inputs/complex_tests/parentheses/6.txt": {
         "B": True,
         "C": False,
         "E": False
     },
+    # Same conclusion rules
+    "inputs/complex_tests/same_conclusion/1.txt": {
+        "B": False,
+        "C": False
+    },
+    "inputs/complex_tests/same_conclusion/2.txt": {
+        "C": True
+    },
+    "inputs/complex_tests/same_conclusion/3.txt": {
+        "C": True,
+        "F": True
+    },
+    # Xor conditions
+    "inputs/complex_tests/xor_conditions/1.txt": {
+        "C": False,
+        "D": False
+    },
+    "inputs/complex_tests/xor_conditions/2.txt": {
+        "C": True,
+        "E": True
+    },
+    "inputs/complex_tests/xor_conditions/3.txt": {
+        "C": True,
+        "E": False
+    },
+    "inputs/complex_tests/xor_conditions/4.txt": {
+        "B": True,
+        "E": True,
+        "G": False
+    }
 }
 
 def run_test(file_path, expected):
