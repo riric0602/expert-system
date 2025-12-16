@@ -70,6 +70,46 @@ tests = {
         "B": False,
         "C": False,
     },
+    "inputs/complex_tests/or_conditions/7.txt": {
+        "C": False,
+    },
+    "inputs/complex_tests/or_conditions/8.txt": {
+        "E": False,
+    },
+    "inputs/complex_tests/or_conditions/9.txt": {
+        "F": True,
+    },
+    "inputs/complex_tests/or_conditions/10.txt": {
+        "C": True,
+        "D": True,
+        "F": False
+    },
+    "inputs/complex_tests/parentheses/11.txt": {
+        "C": True,
+        "E": False
+    },
+    "inputs/complex_tests/parentheses/12.txt": {
+        "D": True,
+        "E": False
+    },
+    "inputs/complex_tests/parentheses/13.txt": {
+        "E": False,
+        "H": True
+    },
+    "inputs/complex_tests/parentheses/14.txt": {
+        "D": True,
+        "F": True
+    },
+    "inputs/complex_tests/parentheses/15.txt": {
+        "A": True,
+        "B": False,
+        "C": True
+    },
+    "inputs/complex_tests/parentheses/16.txt": {
+        "B": True,
+        "C": False,
+        "E": False
+    },
 }
 
 def run_test(file_path, expected):
