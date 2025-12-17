@@ -143,6 +143,19 @@ tests = {
         "B": True,
         "E": True,
         "G": False
+    },
+    # Or conclusions
+    "inputs/complex_tests/or_conclusions/1.txt": {
+        "C": None,
+        "D": None
+    },
+    "inputs/complex_tests/or_conclusions/2.txt": {
+        "C": False,
+        "D": True,
+    },
+    "inputs/complex_tests/or_conclusions/3.txt": {
+        "E": False,
+        "D": False,
     }
 }
 

@@ -379,7 +379,6 @@ class Engine:
             # Step 1: deduce queries
             for q in self.queries:
                 q.value = self.prove(q)
-                print(f"{q.name} : {q.value}")
                 self.update_ident_in_rule(q)
 
             # Step 2: deduce all symbols (fill unknowns for non-queries)
