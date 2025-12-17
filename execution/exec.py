@@ -252,7 +252,6 @@ class Engine:
         return None
 
 
-    
     # --------------------------------------------------
     # Backward chaining over the graph
     # --------------------------------------------------
@@ -282,16 +281,28 @@ class Engine:
 
                 if premise_value is True:
                     conclusion_result = True
+                elif premise_value is False:
+                    conclusion_result = False
                 else:
                     conclusion_result = None
 
             elif isinstance(rule, Equiv):
                 if self.ident_in_expr(rule.left, ident):
-                    conclusion_result = self.eval_expr(rule.right, visited)
-                    conclusion = rule.left
+                    idents = self.idents_in_expr(rule.right)
+                    if all(i.value is not None for i in idents):
+                        conclusion_result = self.eval_expr(rule.right, visited)
+                        conclusion = rule.left
+                    else:
+                        conclusion_result = None
+                        conclusion = rule.left
                 else:
-                    conclusion_result = self.eval_expr(rule.left, visited)
-                    conclusion = rule.right
+                    idents = self.idents_in_expr(rule.left)
+                    if all(i.value is not None for i in idents):
+                        conclusion_result = self.eval_expr(rule.left, visited)
+                        conclusion = rule.right
+                    else:
+                        conclusion_result = None
+                        conclusion = rule.right
 
             if conclusion_result is not None:
                 result = self.conclude_ident(conclusion, conclusion_result, ident)
@@ -302,12 +313,14 @@ class Engine:
         determined = [r for r in results if r is not None]
 
         if len(determined) > 1 and any(r != determined[0] for r in determined):
-            raise ContradictionException(f"Contradiction in rules for {ident.name}")
+            raise ContradictionException(f"in rules for {ident.name}")
 
         if True in determined:
             ident.value = True
-        else:
+        elif False in determined:
             ident.value = False
+        else:
+            ident.value = None
 
         return ident.value
 
@@ -362,38 +375,30 @@ class Engine:
 
 
     def backward_chaining(self):
-        # Step 1: deduce queries
-        for q in self.queries:
-            q.value = self.prove(q)
-            self.update_ident_in_rule(q)
-
-        # print("Symbols dictionary:")
-        # for name, ident in self.symbols.items():
-        #     print(f"{name}: {ident}")
-
-        # Step 2: deduce all symbols (fill unknowns for non-queries)
-        for s in self.symbols.values():
-            if s not in self.queries and s.value is None:
-                val = self.prove(s)
-                if val is None:
-                    s.value = False
-                else:
-                    s.value = val
-                self.update_ident_in_rule(s)
-
-        # print("Symbols dictionary:")
-        # for name, ident in self.symbols.items():
-        #     print(f"{name}: {ident}")
-
-        # Step 3: re-evaluate queries with updated facts
-        for q in self.queries:
-            if q.value is None:
+        try:
+            # Step 1: deduce queries
+            for q in self.queries:
                 q.value = self.prove(q)
+                print(f"{q.name} : {q.value}")
                 self.update_ident_in_rule(q)
 
-        # print("Symbols dictionary:")
-        # for name, ident in self.symbols.items():
-        #     print(f"{name}: {ident}")
+            # Step 2: deduce all symbols (fill unknowns for non-queries)
+            for s in self.symbols.values():
+                if s not in self.queries and s.value is None:
+                    val = self.prove(s)
+                    if val is None:
+                        s.value = False
+                    else:
+                        s.value = val
+                    self.update_ident_in_rule(s)
+
+            # Step 3: re-evaluate queries with updated facts
+            for q in self.queries:
+                if q.value is None:
+                    q.value = self.prove(q)
+                    self.update_ident_in_rule(q)
+        except Exception:
+            raise
 
         return self.queries
 

@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": ["inputs/unit_tests/and_conclusions/2.txt"]
+            "args": ["inputs/eval_tests/and_conclusions/2.txt"]
         }
     ]
 }

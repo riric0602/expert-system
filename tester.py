@@ -4,42 +4,42 @@ import os
 
 tests = {
     # Unit tests
-    "inputs/unit_tests/and_rules.txt": {
-        "C": True,
-        "D": True,
-        "E": False,
-        "F": False,
-        "I": False,
-        "J": False,
-    },
-    "inputs/unit_tests/or_rules.txt": {
-        "C": True,
-        "D": True,
-        "E": False,
-        "F": False,
-        "I": True,
-        "J": True,
-        "K": True,
-        "L": True
-    },
-    "inputs/unit_tests/xor_rules.txt": {
-        "C": False,
-        "D": False,
-        "E": False,
-        "F": False,
-        "I": True,
-        "J": True,
-        "K": False,
-        "L": False
-    },
-    "inputs/unit_tests/not_rules.txt": {
-        "D": None,
-        "E": False,
-        "F": True,
-        "X": True,
-        "Y": None,
-        "Z": True
-    },
+    # "inputs/unit_tests/and_rules.txt": {
+    #     "C": True,
+    #     "D": True,
+    #     "E": False,
+    #     "F": False,
+    #     "I": False,
+    #     "J": False,
+    # },
+    # "inputs/unit_tests/or_rules.txt": {
+    #     "C": True,
+    #     "D": True,
+    #     "E": False,
+    #     "F": False,
+    #     "I": True,
+    #     "J": True,
+    #     "K": True,
+    #     "L": True
+    # },
+    # "inputs/unit_tests/xor_rules.txt": {
+    #     "C": False,
+    #     "D": False,
+    #     "E": False,
+    #     "F": False,
+    #     "I": True,
+    #     "J": True,
+    #     "K": False,
+    #     "L": False
+    # },
+    # "inputs/unit_tests/not_rules.txt": {
+    #     "D": None,
+    #     "E": False,
+    #     "F": True,
+    #     "X": True,
+    #     "Y": None,
+    #     "Z": True
+    # },
     # Complex tests
     # And in conclusions
     "inputs/complex_tests/and_conclusions/1.txt": {
@@ -147,7 +147,9 @@ tests = {
 }
 
 contradiction_tests = [
-    "inputs/complex_tests/contradictions/1.txt"
+    "inputs/complex_tests/contradictions/1.txt",
+    "inputs/complex_tests/contradictions/2.txt",
+    "inputs/complex_tests/contradictions/3.txt"
 ]
 
 

@@ -25,5 +25,7 @@ if __name__ == "__main__":
         for q in results:
             print(f"  {q.name}: {q.value}")
     except ContradictionException as e:
-        print(f"Contradiction detected: {e}")
+        print(f"Contradiction detected {e}")
         sys.exit(1)
+    except Exception as e:
+        print(e)

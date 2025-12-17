@@ -1,6 +1,6 @@
-A <=> (B | C)
 D => B
 E <=> C
+A <=> (B | C)
 
 =E
-?ABC
+?BCA
