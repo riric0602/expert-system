@@ -149,7 +149,8 @@ tests = {
 contradiction_tests = [
     "inputs/complex_tests/contradictions/1.txt",
     "inputs/complex_tests/contradictions/2.txt",
-    "inputs/complex_tests/contradictions/3.txt"
+    "inputs/complex_tests/contradictions/3.txt",
+    "inputs/complex_tests/contradictions/4.txt"
 ]
 
 
