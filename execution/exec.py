@@ -97,6 +97,8 @@ class Engine:
 
     def eval_expr(self, expr, visited):
         if isinstance(expr, Ident):
+            if expr.name in visited:
+                return expr.value
             value = self.prove(expr, visited)
             return value
 
@@ -277,36 +279,45 @@ class Engine:
             if isinstance(rule, Implies):
                 premise_value = self.eval_expr(rule.premise, visited)
                 conclusion = rule.conclusion
+                conclusion_result = None
 
                 if premise_value is True:
                     conclusion_result = True
                 elif premise_value is False:
                     conclusion_result = False
-                else:
-                    conclusion_result = None
 
             elif isinstance(rule, Equiv):
                 if self.ident_in_expr(rule.left, ident):
-                    idents = self.idents_in_expr(rule.right)
-                    if all(i.value is not None for i in idents):
-                        conclusion_result = self.eval_expr(rule.right, visited)
-                        conclusion = rule.left
-                    else:
-                        conclusion_result = None
-                        conclusion = rule.left
+                    conclusion_result = self.eval_expr(rule.right, visited)
+                    conclusion = rule.left
                 else:
-                    idents = self.idents_in_expr(rule.left)
-                    if all(i.value is not None for i in idents):
-                        conclusion_result = self.eval_expr(rule.left, visited)
-                        conclusion = rule.right
-                    else:
-                        conclusion_result = None
-                        conclusion = rule.right
+                    conclusion_result = self.eval_expr(rule.left, visited)
+                    conclusion = rule.right
 
             if conclusion_result is not None:
                 result = self.conclude_ident(conclusion, conclusion_result, ident)
 
             results.append(result)
+
+        # if all(result is None for result in results):
+        #     for rn in symbol_node.used_in_rules:
+        #         rule = rn.rule
+        #         result = None
+        #         premise_result = None
+
+        #         if isinstance(rule, Implies):
+        #             conclusion_value = self.eval_expr(rule.conclusion, visited)
+        #             premise = rule.premise
+
+        #             if conclusion_value is True:
+        #                 premise_result = True
+        #             elif conclusion_value is False:
+        #                 premise_result = False
+
+        #         if premise_result is not None:
+        #             result = self.conclude_ident(premise, premise_result, ident)
+
+        #         results.append(result)
 
         # Resolve final value
         determined = [r for r in results if r is not None]

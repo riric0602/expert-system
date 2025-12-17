@@ -33,11 +33,11 @@ tests = {
         "L": False
     },
     "inputs/unit_tests/not_rules.txt": {
-        "D": None,
+        "D": False,
         "E": False,
         "F": True,
         "X": True,
-        "Y": None,
+        "Y": False,
         "Z": True
     },
     # Complex tests
@@ -193,18 +193,22 @@ contradiction_tests = [
 ]
 
 
+class Colors:
+    GREEN = "\033[94m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    CYAN = "\033[96m"
+    END = "\033[0m"
+    BOLD = "\033[1m"
+
+
 def run_test(file_path, expected):
     pr = parser(file_path)
     engine = Engine(pr)
     results = engine.backward_chaining()
     
-    output = {}
-    passed = True
-    for q in results:
-        output[q.name] = q.value
-        expected_val = expected.get(q.name)
-        if expected_val is not None and q.value != expected_val:
-            passed = False
+    output = {q.name: q.value for q in results}
+    passed = all(output.get(k) == v for k, v in expected.items())
     
     return {
         "file": file_path,
@@ -219,26 +223,52 @@ def run_contradiction_test(file_path):
         pr = parser(file_path)
         engine = Engine(pr)
         engine.backward_chaining()
-
-        return {
-            "file": file_path,
-            "passed": False,
-            "error": "No ContradictionException was raised"
-        }
-
+        return {"file": file_path, "passed": False, "error": "No ContradictionException was raised"}
     except ContradictionException:
-        return {
-            "file": file_path,
-            "passed": True
-        }
-
+        return {"file": file_path, "passed": True}
     except Exception as e:
-        return {
-            "file": file_path,
-            "passed": False,
-            "error": f"Unexpected exception: {type(e).__name__}"
-        }
+        return {"file": file_path, "passed": False, "error": f"Unexpected exception: {type(e).__name__}"}
 
+
+def print_summary(summary):
+    total = len(summary)
+    passed_count = sum(1 for r in summary if r['passed'])
+    failed_count = total - passed_count
+    percent_passed = (passed_count / total * 100) if total else 0
+
+    print(f"\n{Colors.BOLD}{Colors.CYAN}==================== TEST SUMMARY ===================={Colors.END}")
+    print(f"Total tests: {total} | Passed: {Colors.GREEN}{passed_count} ✅{Colors.END} | "
+          f"Failed: {Colors.RED}{failed_count} ❌{Colors.END} | Success Rate: {percent_passed:.1f}%\n")
+
+    for r in summary:
+        status = f"{Colors.GREEN}PASSED ✅{Colors.END}" if r['passed'] else f"{Colors.RED}FAILED ❌{Colors.END}"
+        print(f"{Colors.BOLD}Test:{Colors.END} {r['file']} | Status: {status}")
+
+        if not r['passed']:
+            if 'results' in r and 'expected' in r:
+                print(f"  {Colors.YELLOW}Mismatched Results:{Colors.END}")
+                for k, val in r['results'].items():
+                    expected_val = r['expected'].get(k)
+                    if expected_val is not None and val != expected_val:
+                        print(f"    {k:<20}: got {val}, expected {expected_val}")
+            if 'error' in r:
+                print(f"  {Colors.RED}Error: {r['error']}{Colors.END}")
+        else:
+            # Optional: show results for passed tests
+            if 'results' in r:
+                print(f"  {Colors.CYAN}Results:{Colors.END}")
+                for k, val in r['results'].items():
+                    print(f"    {k:<20}: {val}")
+        
+        print("-----------------------------------------------------")
+
+    if failed_count > 0:
+        print(f"\n{Colors.RED}{Colors.BOLD}Failed Tests:{Colors.END}")
+        for r in summary:
+            if not r['passed']:
+                print(f" - {r['file']}")
+    else:
+        print(f"\n{Colors.GREEN}{Colors.BOLD}All tests passed! 🎉{Colors.END}")
 
 
 if __name__ == "__main__":
@@ -247,39 +277,17 @@ if __name__ == "__main__":
     # Normal tests
     for file_path, expected in tests.items():
         if os.path.exists(file_path):
-            print(file_path)
             result = run_test(file_path, expected)
             summary.append(result)
         else:
-            print(f"File {file_path} not found.")
+            print(f"{Colors.YELLOW}⚠️ File not found: {file_path}{Colors.END}")
 
     # Contradiction tests
     for file_path in contradiction_tests:
         if os.path.exists(file_path):
-            print(file_path)
             result = run_contradiction_test(file_path)
             summary.append(result)
         else:
-            print(f"File {file_path} not found.")
+            print(f"{Colors.YELLOW}⚠️ File not found: {file_path}{Colors.END}")
 
-    # ------------------- Print results -------------------
-    for r in summary:
-        print(f"Test: {r['file']}")
-        print(f"Passed: {'✅' if r['passed'] else '❌'}")
-
-        # Only print details if failed
-        if not r['passed']:
-            if 'results' in r and 'expected' in r:
-                for k in r['results']:
-                    expected_val = r['expected'].get(k)
-                    if expected_val is not None and r['results'][k] != expected_val:
-                        print(f"  {k}: got {r['results'][k]}, expected {expected_val}")
-            if 'error' in r:
-                print(f"  Error: {r['error']}")
-
-        print("---------------------------------------------------------")
-
-    print("Failed Tests:")
-    for r in summary:
-        if not r['passed']:
-            print(f"{r['file']}")
+    print_summary(summary)

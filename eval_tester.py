@@ -104,18 +104,23 @@ tests = {
     }
 }
 
+
+class Colors:
+    BLUE = "\033[94m"   # Passed
+    RED = "\033[91m"    # Failed
+    YELLOW = "\033[93m" # Warnings
+    CYAN = "\033[96m"   # Info
+    END = "\033[0m"
+    BOLD = "\033[1m"
+
+
 def run_test(file_path, expected):
     pr = parser(file_path)
     engine = Engine(pr)
     results = engine.backward_chaining()
     
-    output = {}
-    passed = True
-    for q in results:
-        output[q.name] = q.value
-        expected_val = expected.get(q.name)
-        if expected_val is not None and q.value != expected_val:
-            passed = False
+    output = {q.name: q.value for q in results}
+    passed = all(output.get(k) == v for k, v in expected.items())
     
     return {
         "file": file_path,
@@ -124,29 +129,53 @@ def run_test(file_path, expected):
         "expected": expected
     }
 
+def print_summary(summary):
+    total = len(summary)
+    passed_count = sum(1 for r in summary if r['passed'])
+    failed_count = total - passed_count
+    percent_passed = (passed_count / total * 100) if total else 0
+
+    print(f"\n{Colors.BOLD}{Colors.CYAN}==================== TEST SUMMARY ===================={Colors.END}")
+    print(f"Total tests: {total} | Passed: {Colors.BLUE}{passed_count} ✅{Colors.END} | "
+          f"Failed: {Colors.RED}{failed_count} ❌{Colors.END} | Success Rate: {percent_passed:.1f}%\n")
+
+    for r in summary:
+        status = f"{Colors.BLUE}PASSED ✅{Colors.END}" if r['passed'] else f"{Colors.RED}FAILED ❌{Colors.END}"
+        print(f"{Colors.BOLD}Test:{Colors.END} {r['file']} | Status: {status}")
+
+        if not r['passed']:
+            print(f"  {Colors.YELLOW}Mismatched Results:{Colors.END}")
+            for k, val in r['results'].items():
+                expected_val = r['expected'].get(k)
+                if expected_val is not None and val != expected_val:
+                    print(f"    {k:<20}: got {val}, expected {expected_val}")
+        else:
+            # Optional: show results for passed tests
+            print(f"  {Colors.CYAN}Results:{Colors.END}")
+            for k, val in r['results'].items():
+                print(f"    {k:<20}: {val}")
+
+        print("-----------------------------------------------------")
+
+    if failed_count > 0:
+        print(f"\n{Colors.RED}{Colors.BOLD}Failed Tests:{Colors.END}")
+        for r in summary:
+            if not r['passed']:
+                print(f" - {r['file']}")
+    else:
+        print(f"\n{Colors.BLUE}{Colors.BOLD}All tests passed! 🎉{Colors.END}")
+
+
 if __name__ == "__main__":
     summary = []
-    
+
+    # Run tests
     for file_path, expected in tests.items():
         if os.path.exists(file_path):
-            print(file_path)
+            print(f"{Colors.CYAN}Running test: {file_path}{Colors.END}")
             result = run_test(file_path, expected)
             summary.append(result)
         else:
-            print(f"File {file_path} not found.")
+            print(f"{Colors.YELLOW}⚠️ File not found: {file_path}{Colors.END}")
 
-    # Print results
-    for r in summary:
-        print(f"Test: {r['file']}")
-        print(f"Passed: {'✅' if r['passed'] else '❌'}")
-        if not r['passed']:
-            for k in r['results']:
-                if r['results'][k] != r['expected'].get(k):
-                    print("Results vs Expected:")
-                    print(f"  {k}: got {r['results'][k]}, expected {r['expected'].get(k)}")
-        print("---------------------------------------------------------")
-    
-    print("Failed Tests:")
-    for r in summary:
-        if not r['passed']:
-            print(f"{r['file']}")
+    print_summary(summary)
