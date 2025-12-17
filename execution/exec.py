@@ -122,11 +122,10 @@ class Engine:
 
         if isinstance(expr, Xor):
             vals = [self.eval_expr(t, visited) for t in expr.terms]
-            if any(v is None for v in vals):
-                return None
             result = False
             for v in vals:
-                result ^= v
+                if v != None:
+                    result ^= v
             return result
 
         return None
@@ -400,6 +399,3 @@ class Engine:
             raise
 
         return self.queries
-
-
-

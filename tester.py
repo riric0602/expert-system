@@ -4,42 +4,42 @@ import os
 
 tests = {
     # Unit tests
-    # "inputs/unit_tests/and_rules.txt": {
-    #     "C": True,
-    #     "D": True,
-    #     "E": False,
-    #     "F": False,
-    #     "I": False,
-    #     "J": False,
-    # },
-    # "inputs/unit_tests/or_rules.txt": {
-    #     "C": True,
-    #     "D": True,
-    #     "E": False,
-    #     "F": False,
-    #     "I": True,
-    #     "J": True,
-    #     "K": True,
-    #     "L": True
-    # },
-    # "inputs/unit_tests/xor_rules.txt": {
-    #     "C": False,
-    #     "D": False,
-    #     "E": False,
-    #     "F": False,
-    #     "I": True,
-    #     "J": True,
-    #     "K": False,
-    #     "L": False
-    # },
-    # "inputs/unit_tests/not_rules.txt": {
-    #     "D": None,
-    #     "E": False,
-    #     "F": True,
-    #     "X": True,
-    #     "Y": None,
-    #     "Z": True
-    # },
+    "inputs/unit_tests/and_rules.txt": {
+        "C": True,
+        "D": True,
+        "E": False,
+        "F": False,
+        "I": False,
+        "J": False,
+    },
+    "inputs/unit_tests/or_rules.txt": {
+        "C": True,
+        "D": True,
+        "E": False,
+        "F": False,
+        "I": True,
+        "J": True,
+        "K": True,
+        "L": True
+    },
+    "inputs/unit_tests/xor_rules.txt": {
+        "C": False,
+        "D": False,
+        "E": False,
+        "F": False,
+        "I": True,
+        "J": True,
+        "K": False,
+        "L": False
+    },
+    "inputs/unit_tests/not_rules.txt": {
+        "D": None,
+        "E": False,
+        "F": True,
+        "X": True,
+        "Y": None,
+        "Z": True
+    },
     # Complex tests
     # And in conclusions
     "inputs/complex_tests/and_conclusions/1.txt": {
@@ -156,7 +156,33 @@ tests = {
     "inputs/complex_tests/or_conclusions/3.txt": {
         "E": False,
         "D": False,
-    }
+    },
+    "inputs/complex_tests/or_conclusions/4.txt": {
+        "E": False,
+        "D": False,
+        "I": None,
+        "J": None,
+        "C": True,
+        "F": False
+    },
+    # Xor conclusions
+    "inputs/complex_tests/xor_conclusions/1.txt": {
+        "D": False,
+        "E": True
+    },
+    "inputs/complex_tests/xor_conclusions/2.txt": {
+        "E": True,
+        "F": True
+    },
+    "inputs/complex_tests/xor_conclusions/3.txt": {
+        "E": True,
+        "E": True,
+        "I": False
+    },
+    "inputs/complex_tests/xor_conclusions/4.txt": {
+        "D": None,
+        "E": None
+    },
 }
 
 contradiction_tests = [
@@ -252,3 +278,8 @@ if __name__ == "__main__":
                 print(f"  Error: {r['error']}")
 
         print("---------------------------------------------------------")
+
+    print("Failed Tests:")
+    for r in summary:
+        if not r['passed']:
+            print(f"{r['file']}")

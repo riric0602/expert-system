@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": ["inputs/eval_tests/and_conclusions/2.txt"]
+            "args": ["inputs/complex_tests/same_conclusion/1.txt"]
         }
     ]
 }

@@ -1,0 +1,6 @@
+A <=> D | E
+B <=> I | J
+G => C | F
+
+=BC
+?DEIJCF

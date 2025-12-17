@@ -1,6 +1,6 @@
 M => N
 N => P + O
-Q => R + N
+Q => R
 L => O
 
 =L
