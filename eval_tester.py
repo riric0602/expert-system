@@ -129,6 +129,7 @@ if __name__ == "__main__":
     
     for file_path, expected in tests.items():
         if os.path.exists(file_path):
+            print(file_path)
             result = run_test(file_path, expected)
             summary.append(result)
         else:
