@@ -14,6 +14,9 @@ class RuleNode:
         self.premise_idents = []
         self.conclusion_idents = []
 
+class ContradictionException(Exception):
+    pass
+
 class Engine:
     def __init__(self, pr: ParseResult):
         self.rules = pr.rules
@@ -127,7 +130,7 @@ class Engine:
         return None
     
 
-    def conclude_ident(self, expr, conclusion_result, ident, visited):
+    def conclude_ident(self, original, expr, conclusion_result, ident):
         terms = expr.terms if hasattr(expr, "terms") else [expr]
 
         # Peek helper: observe without proving / defaulting
@@ -178,7 +181,7 @@ class Engine:
                     if isinstance(t, Ident) and t.name == ident.name:
                         continue
                     if peek(t) is False:
-                        raise ValueError("Contradiction in AND conclusion")
+                        raise ContradictionException(f"Contradiction detected in rule {original}")
                 return True
 
             if conclusion_result is False:
@@ -295,7 +298,7 @@ class Engine:
                     conclusion = rule.right
 
             if conclusion_result != None:
-                result = self.conclude_ident(conclusion, conclusion_result, ident, visited)
+                result = self.conclude_ident(rn.original, conclusion, conclusion_result, ident)
             else:
                 result = None
 
@@ -311,7 +314,7 @@ class Engine:
         determined = [r for r in results if r is not None]
 
         if len(determined) > 1 and any(r != determined[0] for r in determined):
-            raise ValueError(f"Contradiction in rules for {ident.name}")
+            raise ContradictionException(f"Contradiction in rules for {ident.name}")
 
         if True in determined:
             ident.value = True
@@ -325,13 +328,9 @@ class Engine:
     def backward_chaining(self):
         try:
             for q in self.queries:
-                # print("=========================================================")
-                # print(f"Proving {q.name}")
-                # print("=========================================================")
                 q.value = self.prove(q)
-                # print(f"Final deduced value: {q.name} = {q.value}\n")
-        except ValueError as e:
-            print("Error:", e)
-            exit(1)
+        except ContradictionException as e:
+            raise
 
         return self.queries
+

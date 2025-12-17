@@ -1,4 +1,4 @@
-from execution.exec import Engine
+from execution.exec import Engine, ContradictionException
 from parsing.file_utils import parser
 import os
 
@@ -146,6 +146,11 @@ tests = {
     }
 }
 
+contradiction_tests = [
+    "inputs/complex_tests/contradictions/1.txt"
+]
+
+
 def run_test(file_path, expected):
     pr = parser(file_path)
     engine = Engine(pr)
@@ -166,24 +171,66 @@ def run_test(file_path, expected):
         "expected": expected
     }
 
+
+def run_contradiction_test(file_path):
+    try:
+        pr = parser(file_path)
+        engine = Engine(pr)
+        engine.backward_chaining()
+
+        return {
+            "file": file_path,
+            "passed": False,
+            "error": "No ContradictionException was raised"
+        }
+
+    except ContradictionException:
+        return {
+            "file": file_path,
+            "passed": True
+        }
+
+    except Exception as e:
+        return {
+            "file": file_path,
+            "passed": False,
+            "error": f"Unexpected exception: {type(e).__name__}"
+        }
+
+
+
 if __name__ == "__main__":
     summary = []
-    
+
+    # Normal tests
     for file_path, expected in tests.items():
         if os.path.exists(file_path):
-            print(file_path)
             result = run_test(file_path, expected)
             summary.append(result)
         else:
             print(f"File {file_path} not found.")
 
-    # Print results
+    # Contradiction tests
+    for file_path in contradiction_tests:
+        if os.path.exists(file_path):
+            result = run_contradiction_test(file_path)
+            summary.append(result)
+        else:
+            print(f"File {file_path} not found.")
+
+    # ------------------- Print results -------------------
     for r in summary:
         print(f"Test: {r['file']}")
         print(f"Passed: {'✅' if r['passed'] else '❌'}")
+
+        # Only print details if failed
         if not r['passed']:
-            for k in r['results']:
-                if r['results'][k] != r['expected'].get(k):
-                    print("Results vs Expected:")
-                    print(f"  {k}: got {r['results'][k]}, expected {r['expected'].get(k)}")
+            if 'results' in r and 'expected' in r:
+                for k in r['results']:
+                    expected_val = r['expected'].get(k)
+                    if expected_val is not None and r['results'][k] != expected_val:
+                        print(f"  {k}: got {r['results'][k]}, expected {expected_val}")
+            if 'error' in r:
+                print(f"  Error: {r['error']}")
+
         print("---------------------------------------------------------")
