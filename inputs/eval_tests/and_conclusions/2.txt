@@ -1,4 +1,5 @@
-B => A 
+B => A
+A => C
 D + E => B 
 G + H => F 
 I + J => G 
@@ -9,4 +10,4 @@ N => M
 
 =DEIJP
 
-?AFKP
+?ACFKP

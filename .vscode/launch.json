@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": ["inputs/complex_tests/contradictions/3.txt"]
+            "args": ["inputs/unit_tests/and_conclusions/2.txt"]
         }
     ]
 }

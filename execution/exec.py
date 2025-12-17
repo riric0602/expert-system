@@ -14,8 +14,10 @@ class RuleNode:
         self.premise_idents = []
         self.conclusion_idents = []
 
+
 class ContradictionException(Exception):
     pass
+
 
 class Engine:
     def __init__(self, pr: ParseResult):
@@ -258,7 +260,6 @@ class Engine:
     def prove(self, goal: Ident, visited=None):
         symbol_node = self.symbol_nodes[goal.name]
         ident = symbol_node.ident
-        is_false_fact = self.is_not_query(ident)
 
         # Known value
         if ident.value is not None:
@@ -267,17 +268,12 @@ class Engine:
         if visited is None:
             visited = set()
 
-        # Cycle detected
-        if ident.name in visited:
-            return False if is_false_fact else None
-
         visited.add(ident.name)
         results = []
 
         # Only rules that can produce this fact
         for rn in symbol_node.produced_by_rules:
             rule = rn.rule
-            print(rn.original)
             result = None
 
             if isinstance(rule, Implies):
@@ -297,18 +293,10 @@ class Engine:
                     conclusion_result = self.eval_expr(rule.left, visited)
                     conclusion = rule.right
 
-            if conclusion_result != None:
+            if conclusion_result is not None:
                 result = self.conclude_ident(conclusion, conclusion_result, ident)
-            else:
-                result = None
 
             results.append(result)
-
-            # ---- Reasoning log ----
-            # print("---------------------------------------------------------")
-            # print(f"Applied rule: {rn.original}")
-            # print(f"Goal {ident.name} deduced as {result}")
-            # print("---------------------------------------------------------")
 
         # Resolve final value
         determined = [r for r in results if r is not None]
@@ -321,16 +309,93 @@ class Engine:
         else:
             ident.value = False
 
-        print(f"{ident.name}: {ident.value}")
         return ident.value
+
+        
+    def update_ident_in_rule(self, ident):
+        # Get the symbol node for this ident
+        if ident.name not in self.symbol_nodes:
+            return
+        
+        self.symbols[ident.name].value = ident.value
+        self.symbol_nodes[ident.name].value = ident.value
+        
+        symbol_node = self.symbol_nodes[ident.name]
+        
+        # Update in rules that produce this symbol
+        for rn in symbol_node.produced_by_rules:
+            rule = rn.rule
+            if isinstance(rule, Implies):
+                self._update_expr_values(rule.premise, ident)
+                self._update_expr_values(rule.conclusion, ident)
+            elif isinstance(rule, Equiv):
+                self._update_expr_values(rule.left, ident)
+                self._update_expr_values(rule.right, ident)
+        
+        # Update in rules that use this symbol
+        for rn in symbol_node.used_in_rules:
+            rule = rn.rule
+            if isinstance(rule, Implies):
+                self._update_expr_values(rule.premise, ident)
+                self._update_expr_values(rule.conclusion, ident)
+            elif isinstance(rule, Equiv):
+                self._update_expr_values(rule.left, ident)
+                self._update_expr_values(rule.right, ident)
+
+
+    def _update_expr_values(self, expr, ident):
+        """Helper to update a specific ident in an expression"""
+        if isinstance(expr, Ident):
+            if expr.name == ident.name:
+                expr.value = ident.value
+        elif isinstance(expr, Not):
+            self._update_expr_values(expr.child, ident)
+        elif isinstance(expr, (And, Or, Xor)):
+            for t in expr.terms:
+                self._update_expr_values(t, ident)
+        elif isinstance(expr, Implies):
+            self._update_expr_values(expr.premise, ident)
+            self._update_expr_values(expr.conclusion, ident)
+        elif isinstance(expr, Equiv):
+            self._update_expr_values(expr.left, ident)
+            self._update_expr_values(expr.right, ident)
 
 
     def backward_chaining(self):
-        try:
-            for q in self.queries:
+        # Step 1: deduce queries
+        for q in self.queries:
+            q.value = self.prove(q)
+            self.update_ident_in_rule(q)
+
+        # print("Symbols dictionary:")
+        # for name, ident in self.symbols.items():
+        #     print(f"{name}: {ident}")
+
+        # Step 2: deduce all symbols (fill unknowns for non-queries)
+        for s in self.symbols.values():
+            if s not in self.queries and s.value is None:
+                val = self.prove(s)
+                if val is None:
+                    s.value = False
+                else:
+                    s.value = val
+                self.update_ident_in_rule(s)
+
+        # print("Symbols dictionary:")
+        # for name, ident in self.symbols.items():
+        #     print(f"{name}: {ident}")
+
+        # Step 3: re-evaluate queries with updated facts
+        for q in self.queries:
+            if q.value is None:
                 q.value = self.prove(q)
-        except ContradictionException as e:
-            raise
+                self.update_ident_in_rule(q)
+
+        # print("Symbols dictionary:")
+        # for name, ident in self.symbols.items():
+        #     print(f"{name}: {ident}")
 
         return self.queries
+
+
 

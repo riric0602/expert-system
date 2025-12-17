@@ -4,6 +4,9 @@ import sys
 
 def run(file_path):
     pr = parser(file_path)
+
+    print(pr)
+
     engine = Engine(pr)
     results = engine.backward_chaining()
     return results
