@@ -205,6 +205,7 @@ if __name__ == "__main__":
     # Normal tests
     for file_path, expected in tests.items():
         if os.path.exists(file_path):
+            print(file_path)
             result = run_test(file_path, expected)
             summary.append(result)
         else:
@@ -213,6 +214,7 @@ if __name__ == "__main__":
     # Contradiction tests
     for file_path in contradiction_tests:
         if os.path.exists(file_path):
+            print(file_path)
             result = run_contradiction_test(file_path)
             summary.append(result)
         else:

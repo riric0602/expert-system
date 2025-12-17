@@ -130,7 +130,7 @@ class Engine:
         return None
     
 
-    def conclude_ident(self, original, expr, conclusion_result, ident):
+    def conclude_ident(self, expr, conclusion_result, ident):
         terms = expr.terms if hasattr(expr, "terms") else [expr]
 
         # Peek helper: observe without proving / defaulting
@@ -181,7 +181,7 @@ class Engine:
                     if isinstance(t, Ident) and t.name == ident.name:
                         continue
                     if peek(t) is False:
-                        raise ContradictionException(f"Contradiction detected in rule {original}")
+                        raise ContradictionException(f"Contradiction detected in rule")
                 return True
 
             if conclusion_result is False:
@@ -298,7 +298,7 @@ class Engine:
                     conclusion = rule.right
 
             if conclusion_result != None:
-                result = self.conclude_ident(rn.original, conclusion, conclusion_result, ident)
+                result = self.conclude_ident(conclusion, conclusion_result, ident)
             else:
                 result = None
 
