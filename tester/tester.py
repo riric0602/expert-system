@@ -2,9 +2,11 @@ from execution.exec import Engine, ContradictionException
 from parsing.file_utils import parser
 import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 tests = {
     # Unit tests
-    "inputs/unit_tests/and_rules.txt": {
+    os.path.join(BASE_DIR, "inputs/unit_tests/and_rules.txt"): {
         "C": True,
         "D": True,
         "E": False,
@@ -12,7 +14,7 @@ tests = {
         "I": False,
         "J": False,
     },
-    "inputs/unit_tests/or_rules.txt": {
+    os.path.join(BASE_DIR, "inputs/unit_tests/or_rules.txt"): {
         "C": True,
         "D": True,
         "E": False,
@@ -22,7 +24,7 @@ tests = {
         "K": True,
         "L": True
     },
-    "inputs/unit_tests/xor_rules.txt": {
+    os.path.join(BASE_DIR, "inputs/unit_tests/xor_rules.txt"): {
         "C": False,
         "D": False,
         "E": False,
@@ -32,7 +34,7 @@ tests = {
         "K": False,
         "L": False
     },
-    "inputs/unit_tests/not_rules.txt": {
+    os.path.join(BASE_DIR, "inputs/unit_tests/not_rules.txt"): {
         "D": False,
         "E": False,
         "F": True,
@@ -42,122 +44,122 @@ tests = {
     },
     # Complex tests
     # And in conclusions
-    "inputs/complex_tests/and_conclusions/1.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/and_conclusions/1.txt"): {
         "A": True,
         "B": True,
         "C": True
     },
-    "inputs/complex_tests/and_conclusions/2.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/and_conclusions/2.txt"): {
         "I": True,
         "J": True,
         "K": True,
         "M": False,
     },
-    "inputs/complex_tests/and_conclusions/3.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/and_conclusions/3.txt"): {
         "N": False,
         "O": True,
         "P": False,
         "R": False,
     },
     # Negation
-    "inputs/complex_tests/negation/1.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/negation/1.txt"): {
         "B": True,
         "C": True,
     },
-    "inputs/complex_tests/negation/2.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/negation/2.txt"): {
         "B": False,
         "C": False,
     },
-    "inputs/complex_tests/negation/3.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/negation/3.txt"): {
         "B": False,
         "C": False,
     },
     # Or conditions
-    "inputs/complex_tests/or_conditions/1.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/or_conditions/1.txt"): {
         "C": False,
     },
-    "inputs/complex_tests/or_conditions/2.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/or_conditions/2.txt"): {
         "E": False,
     },
-    "inputs/complex_tests/or_conditions/3.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/or_conditions/3.txt"): {
         "F": True,
     },
-    "inputs/complex_tests/or_conditions/4.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/or_conditions/4.txt"): {
         "C": True,
         "D": True,
         "F": False
     },
     # Parentheses
-    "inputs/complex_tests/parentheses/1.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/parentheses/1.txt"): {
         "C": True,
         "E": False
     },
-    "inputs/complex_tests/parentheses/2.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/parentheses/2.txt"): {
         "D": True,
         "E": False
     },
-    "inputs/complex_tests/parentheses/3.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/parentheses/3.txt"): {
         "E": False,
         "H": True
     },
-    "inputs/complex_tests/parentheses/4.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/parentheses/4.txt"): {
         "D": True,
         "F": True
     },
-    "inputs/complex_tests/parentheses/5.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/parentheses/5.txt"): {
         "A": True,
         "B": False,
         "C": True
     },
-    "inputs/complex_tests/parentheses/6.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/parentheses/6.txt"): {
         "B": True,
         "C": False,
         "E": False
     },
     # Same conclusion rules
-    "inputs/complex_tests/same_conclusion/1.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/same_conclusion/1.txt"): {
         "B": False,
         "C": False
     },
-    "inputs/complex_tests/same_conclusion/2.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/same_conclusion/2.txt"): {
         "C": True
     },
-    "inputs/complex_tests/same_conclusion/3.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/same_conclusion/3.txt"): {
         "C": True,
         "F": True
     },
     # Xor conditions
-    "inputs/complex_tests/xor_conditions/1.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/xor_conditions/1.txt"): {
         "C": False,
         "D": False
     },
-    "inputs/complex_tests/xor_conditions/2.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/xor_conditions/2.txt"): {
         "C": True,
         "E": True
     },
-    "inputs/complex_tests/xor_conditions/3.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/xor_conditions/3.txt"): {
         "C": True,
         "E": False
     },
-    "inputs/complex_tests/xor_conditions/4.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/xor_conditions/4.txt"): {
         "B": True,
         "E": True,
         "G": False
     },
     # Or conclusions
-    "inputs/complex_tests/or_conclusions/1.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/or_conclusions/1.txt"): {
         "C": None,
         "D": None
     },
-    "inputs/complex_tests/or_conclusions/2.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/or_conclusions/2.txt"): {
         "C": False,
         "D": True,
     },
-    "inputs/complex_tests/or_conclusions/3.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/or_conclusions/3.txt"): {
         "E": False,
         "D": False,
     },
-    "inputs/complex_tests/or_conclusions/4.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/or_conclusions/4.txt"): {
         "E": False,
         "D": False,
         "I": None,
@@ -166,30 +168,30 @@ tests = {
         "F": False
     },
     # Xor conclusions
-    "inputs/complex_tests/xor_conclusions/1.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/xor_conclusions/1.txt"): {
         "D": False,
         "E": True
     },
-    "inputs/complex_tests/xor_conclusions/2.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/xor_conclusions/2.txt"): {
         "E": True,
         "F": True
     },
-    "inputs/complex_tests/xor_conclusions/3.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/xor_conclusions/3.txt"): {
         "E": True,
         "E": True,
         "I": False
     },
-    "inputs/complex_tests/xor_conclusions/4.txt": {
+    os.path.join(BASE_DIR, "inputs/complex_tests/xor_conclusions/4.txt"): {
         "D": None,
         "E": None
     },
 }
 
 contradiction_tests = [
-    "inputs/complex_tests/contradictions/1.txt",
-    "inputs/complex_tests/contradictions/2.txt",
-    "inputs/complex_tests/contradictions/3.txt",
-    "inputs/complex_tests/contradictions/4.txt"
+    os.path.join(BASE_DIR, "inputs/complex_tests/contradictions/1.txt"),
+    os.path.join(BASE_DIR, "inputs/complex_tests/contradictions/2.txt"),
+    os.path.join(BASE_DIR, "inputs/complex_tests/contradictions/3.txt"),
+    os.path.join(BASE_DIR, "inputs/complex_tests/contradictions/4.txt")
 ]
 
 
@@ -269,25 +271,3 @@ def print_summary(summary):
                 print(f" - {r['file']}")
     else:
         print(f"\n{Colors.GREEN}{Colors.BOLD}All tests passed! 🎉{Colors.END}")
-
-
-if __name__ == "__main__":
-    summary = []
-
-    # Normal tests
-    for file_path, expected in tests.items():
-        if os.path.exists(file_path):
-            result = run_test(file_path, expected)
-            summary.append(result)
-        else:
-            print(f"{Colors.YELLOW}⚠️ File not found: {file_path}{Colors.END}")
-
-    # Contradiction tests
-    for file_path in contradiction_tests:
-        if os.path.exists(file_path):
-            result = run_contradiction_test(file_path)
-            summary.append(result)
-        else:
-            print(f"{Colors.YELLOW}⚠️ File not found: {file_path}{Colors.END}")
-
-    print_summary(summary)

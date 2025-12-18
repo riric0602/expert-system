@@ -1,26 +1,16 @@
 import argparse
+import sys
+import os
 from typing import Dict, Iterable, List, Optional
 from parsing.data import Ident
+from parsing.file_utils import parser, parse_input_lines, read_lines_from_file
 from execution.exec import Engine
 from execution.exec import Engine, ContradictionException
-from parsing.file_utils import parser, parse_input_lines, read_lines_from_file
-import sys
-
-
-DEFAULT_PROGRAM = """
-# rules
-A <=> B
-E <=> G
-A + D => E
-!(B + C) | (D ^ H) => F
-E => G
-queries
-?FG
-""".strip("\n")
+from tester.tester import Colors, print_summary, run_test, run_contradiction_test, tests, contradiction_tests
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Expert system")
+    parser = argparse.ArgumentParser(description="Expert system: Backward Chaning algorithm")
     parser.add_argument(
         "input_file",
         nargs="?",
@@ -31,13 +21,42 @@ def parse_args():
         action="store_true",
         help="Launch the interactive window instead of the CLI demo.",
     )
+    parser.add_argument(
+        "--tester",
+        action="store_true",
+        help="Launch the tester to verify execution.",
+    )
     return parser.parse_args()
 
 
-def run(pr):
+def run_main(pr):
     engine = Engine(pr)
     results = engine.backward_chaining()
-    return results
+    print("Query results:")
+    for q in results:
+        print(f"  {q.name}: {q.value}")
+
+
+def run_tester():
+    summary = []
+
+    # Normal tests
+    for file_path, expected in tests.items():
+        if os.path.exists(file_path):
+            result = run_test(file_path, expected)
+            summary.append(result)
+        else:
+            print(f"{Colors.YELLOW}⚠️ File not found: {file_path}{Colors.END}")
+
+    # Contradiction tests
+    for file_path in contradiction_tests:
+        if os.path.exists(file_path):
+            result = run_contradiction_test(file_path)
+            summary.append(result)
+        else:
+            print(f"{Colors.YELLOW}⚠️ File not found: {file_path}{Colors.END}")
+
+    print_summary(summary)
 
 
 def load_program_lines(path: Optional[str]) -> List[str]:
@@ -208,51 +227,25 @@ if __name__ == "__main__":
         sys.exit(1)
 
     args = parse_args()
-    file_path = sys.argv[1]
-    parse_result = parser(file_path)
 
     try:
-        if args.interactive:
-            launch_interactive_window(load_program_lines(file_path), parse_result)
+        if args.tester:
+            run_tester()
         else:
-            results = run(parse_result)
-            print("Query results:")
-            for q in results:
-                print(f"  {q.name}: {q.value}")
+            if not args.input_file:
+                raise ValueError("Interactive mode requires an input file!")
+            
+            file_path = args.input_file
+            parse_result = parser(file_path)
+
+            if args.interactive:
+                launch_interactive_window(load_program_lines(file_path), parse_result)
+            else:
+                run_main(parse_result)
     except ContradictionException as e:
         print(f"Contradiction detected {e}")
         sys.exit(1)
     except Exception as e:
-        print("Error: ", e)
+        print(e)
         raise
 
-
-# def run_cli_demo(pr):
-#     print("Rules (desugared):")
-#     for r in pr.rules:
-#         print(" -", r)
-#     print("Initial facts:", pr.initial_facts)
-#     print(f"Queries: {pr.queries}")
-#     print("Symbols:", pr.symbols)
-#     print("---------------------------------------------------------")
-
-#     engine = Engine(pr)
-#     engine.backward_chaining()
-
-#     print("---------------------------------------------------------")
-#     for q in pr.queries:
-#         print(f"{q.name}: {q.value}")
-
-
-# if __name__ == "__main__":
-#     args = parse_args()
-#     try:
-#         parse_result = load_parse_result(load_program_lines(args.file))
-#     except ValueError as e:
-#         print(f"Error: {e}")
-#         raise SystemExit(1)
-
-#     if args.interactive:
-#         launch_interactive_window(load_program_lines(args.file), parse_result)
-#     else:
-#         run_cli_demo(parse_result)

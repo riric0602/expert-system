@@ -130,9 +130,6 @@ def read_lines_from_file(path: str) -> List[str]:
 
 
 def parser(path: str) -> ParseResult:
-	# Parse file given by path, otherwise default example
-	default_path = "inputs/example.txt"
-	path = path if len(path) > 1 else default_path
 	try:
 		lines = read_lines_from_file(path)
 	except ValueError as e:
