@@ -401,12 +401,12 @@ class Engine:
 
     def backward_chaining(self):
         try:
-            # Step 1: deduce queries
+            self.log("Step 1: Deduce queries")
             for q in self.queries:
                 q.value = self.prove(q)
                 self.update_ident_in_rule(q)
 
-            # Step 2: deduce all symbols (fill unknowns for non-queries)
+            self.log("Step 2: Deduce all non-True facts")
             for s in self.symbols.values():
                 if s not in self.queries and s.value is None:
                     val = self.prove(s)
@@ -416,11 +416,15 @@ class Engine:
                         s.value = val
                     self.update_ident_in_rule(s)
 
-            # Step 3: re-evaluate queries with updated facts
+            self.log("Step 3: Re-evaluate queries")
             for q in self.queries:
                 if q.value is None:
                     q.value = self.prove(q)
                     self.update_ident_in_rule(q)
+
+            if self.logging:
+                self.save_logs("reasoning.log")
+
         except Exception:
             raise
 

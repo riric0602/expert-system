@@ -26,12 +26,24 @@ def parse_args():
         action="store_true",
         help="Launch the tester to verify execution.",
     )
+    parser.add_argument(
+        "--logs",
+        action="store_true",
+        default=False,
+        help="Display reasoning logs to understand the solutions.",
+    )
     return parser.parse_args()
 
 
-def run_main(pr):
-    engine = Engine(pr)
+def run_main(pr, logging):
+    engine = Engine(pr, logging)
     results = engine.backward_chaining()
+
+    # Display the logs
+    if logging:
+        with open("reasoning.log", "r") as f:
+            print(f.read())
+
     print("Query results:")
     for q in results:
         print(f"  {q.name}: {q.value}")
@@ -236,12 +248,14 @@ if __name__ == "__main__":
                 raise ValueError("Interactive mode requires an input file!")
             
             file_path = args.input_file
+            logging = args.logs
             parse_result = parser(file_path)
 
             if args.interactive:
                 launch_interactive_window(load_program_lines(file_path), parse_result)
             else:
-                run_main(parse_result)
+                run_main(parse_result, logging)
+
     except ContradictionException as e:
         print(f"Contradiction detected {e}")
         sys.exit(1)
