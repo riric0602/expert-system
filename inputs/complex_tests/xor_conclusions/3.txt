@@ -1,0 +1,6 @@
+A + (B | C) => D ^ E
+(D | F) + G => H ^ I
+D <=> !I
+
+=AGFD
+?EHI

@@ -1,9 +1,10 @@
 import argparse
 from typing import Dict, Iterable, List, Optional
-
-from parsing.parser import parse_input_lines, read_lines_from_file
 from parsing.data import Ident
 from execution.exec import Engine
+from execution.exec import Engine, ContradictionException
+from parsing.file_utils import parser, parse_input_lines, read_lines_from_file
+import sys
 
 
 DEFAULT_PROGRAM = """
@@ -13,11 +14,7 @@ E <=> G
 A + D => E
 !(B + C) | (D ^ H) => F
 E => G
-
-# initial facts
-=AC
-
-# queries
+queries
 ?FG
 """.strip("\n")
 
@@ -25,22 +22,26 @@ E => G
 def parse_args():
     parser = argparse.ArgumentParser(description="Expert system")
     parser.add_argument(
+        "input_file",
+        nargs="?",
+        help="Path to the input file.",
+    )
+    parser.add_argument(
         "--interactive",
         action="store_true",
         help="Launch the interactive window instead of the CLI demo.",
     )
-    parser.add_argument(
-        "-f",
-        "--file",
-        help="Optional input file containing rules/facts/queries (defaults to built-in sample).",
-    )
     return parser.parse_args()
 
 
+def run(pr):
+    engine = Engine(pr)
+    results = engine.backward_chaining()
+    return results
+
+
 def load_program_lines(path: Optional[str]) -> List[str]:
-    if path:
-        return read_lines_from_file(path)
-    return DEFAULT_PROGRAM.splitlines()
+    return read_lines_from_file(path)
 
 
 def load_parse_result(lines: Iterable[str]):
@@ -201,32 +202,57 @@ def launch_interactive_window(base_lines: List[str], base_parse_result):
     root.mainloop()
 
 
-def run_cli_demo(pr):
-    print("Rules (desugared):")
-    for r in pr.rules:
-        print(" -", r)
-    print("Initial facts:", pr.initial_facts)
-    print(f"Queries: {pr.queries}")
-    print("Symbols:", pr.symbols)
-    print("---------------------------------------------------------")
-
-    engine = Engine(pr)
-    engine.backward_chaining()
-
-    print("---------------------------------------------------------")
-    for q in pr.queries:
-        print(f"{q.name}: {q.value}")
-
-
 if __name__ == "__main__":
-    args = parse_args()
-    try:
-        parse_result = load_parse_result(load_program_lines(args.file))
-    except ValueError as e:
-        print(f"Error: {e}")
-        raise SystemExit(1)
+    if len(sys.argv) < 2:
+        print("Usage: python main.py <file_path>")
+        sys.exit(1)
 
-    if args.interactive:
-        launch_interactive_window(load_program_lines(args.file), parse_result)
-    else:
-        run_cli_demo(parse_result)
+    args = parse_args()
+    file_path = sys.argv[1]
+    parse_result = parser(file_path)
+
+    try:
+        if args.interactive:
+            launch_interactive_window(load_program_lines(file_path), parse_result)
+        else:
+            results = run(parse_result)
+            print("Query results:")
+            for q in results:
+                print(f"  {q.name}: {q.value}")
+    except ContradictionException as e:
+        print(f"Contradiction detected {e}")
+        sys.exit(1)
+    except Exception as e:
+        print("Error: ", e)
+        raise
+
+
+# def run_cli_demo(pr):
+#     print("Rules (desugared):")
+#     for r in pr.rules:
+#         print(" -", r)
+#     print("Initial facts:", pr.initial_facts)
+#     print(f"Queries: {pr.queries}")
+#     print("Symbols:", pr.symbols)
+#     print("---------------------------------------------------------")
+
+#     engine = Engine(pr)
+#     engine.backward_chaining()
+
+#     print("---------------------------------------------------------")
+#     for q in pr.queries:
+#         print(f"{q.name}: {q.value}")
+
+
+# if __name__ == "__main__":
+#     args = parse_args()
+#     try:
+#         parse_result = load_parse_result(load_program_lines(args.file))
+#     except ValueError as e:
+#         print(f"Error: {e}")
+#         raise SystemExit(1)
+
+#     if args.interactive:
+#         launch_interactive_window(load_program_lines(args.file), parse_result)
+#     else:
+#         run_cli_demo(parse_result)

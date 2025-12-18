@@ -1,0 +1,27 @@
+# A (True) xor B (True) : False => C False
+A ^ B => C
+
+# A (True) xor B (True) : False <=> D is False
+A ^ B <=> D
+
+# U (False) xor V (False) : False => E is False
+U ^ V => E
+
+# X (False) xor Z (False) : False <=> F is False
+X ^ Z <=> F
+
+# A (True) xor Y (False) : True => I is True
+A ^ Y => I
+
+# G (False) xor B (True) : True <=> J is True
+G ^ B <=> J
+
+# (A ^ B) is False xor (H ^ W) False : False => K is False
+(A ^ B) ^ (H ^ W) => K
+
+# A ^ O ^ B ^ P : True ^ False ^ True ^ False : False <=> L is False
+A ^ O ^ B ^ P <=> L
+
+=AB
+
+?CDEFIJKL

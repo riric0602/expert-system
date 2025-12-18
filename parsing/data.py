@@ -65,10 +65,8 @@ class ParseResult:
 				# If it's a queried symbol and not in facts, keep None instead of False.
 				if e.name in self.initial_facts:
 					e.value = True
-				elif e.name in query_names:
-					e.value = None
 				else:
-					e.value = False
+					e.value = None
 			elif isinstance(e, Not):
 				visit(e.child)
 			elif isinstance(e, (And, Or, Xor)):
@@ -88,9 +86,10 @@ class ParseResult:
 		for q in self.queries:
 			if q.name in self.initial_facts:
 				q.value = True
+
 		for s in self.symbols:
 			if s.name in self.initial_facts:
 				s.value = True
-			elif s.name not in self.queries:
-				s.value = False
+			else:
+				s.value = None
 				

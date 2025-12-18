@@ -1,0 +1,7 @@
+M => N
+N => P + O
+Q => R
+L => O
+
+=L
+?NOPR

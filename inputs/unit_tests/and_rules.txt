@@ -1,0 +1,23 @@
+# A (True) and B (True) : True => C True
+A + B => C
+
+# A (True) and B (True) : True <=> D is True
+A + B <=> D
+
+# U (False) and V (False) : False => E is False
+U + V => E
+
+# U (False) and V (False) : False <=> F is False
+X + Z <=> F
+
+# (A + B) is True and (U + V) False : False => I is False
+(A + B) + (Y + W) => I
+
+# A + U + B + V is False <=> J is False
+A + G + B + H <=> J
+
+=AB
+
+# U, V, X, Z, G, H, Y, W cannot be deduced so False
+
+?CDEFIJ

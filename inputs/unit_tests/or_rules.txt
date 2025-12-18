@@ -1,0 +1,29 @@
+# A (True) or B (True) : True => C True
+A | B => C
+
+# A (True) or B (True) : True <=> D is True
+A | B <=> D
+
+# U (False) or V (False) : False => E is False
+U | V => E
+
+# X (False) or Z (False) : False <=> F is False
+X | Z <=> F
+
+# A (True) or G (False) : True => I is True
+A | G => I
+
+# H (False) or B (True) : True <=> J is True
+H | B <=> J
+
+# (A | B) is True or (Y | W) False : True => K is True
+(A | B) | (Y | W) => K
+
+# A | O | B | P is True <=> L is True
+A | O | B | P <=> L
+
+=AB
+
+# U, V, X, Z, G, H, Y, W, O, P cannot be deduced so False
+
+?CDEFIJKL

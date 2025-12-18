@@ -1,0 +1,7 @@
+H => I + J
+I => K
+J + L => M
+G => H
+
+=G
+?IJKM
