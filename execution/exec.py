@@ -271,6 +271,9 @@ class Engine:
         visited.add(ident.name)
         results = []
 
+        if symbol_node.produced_by_rules == [] and ident in self.queries:
+            return False
+
         # Only rules that can produce this fact
         for rn in symbol_node.produced_by_rules:
             rule = rn.rule
@@ -299,32 +302,12 @@ class Engine:
 
             results.append(result)
 
-        # if all(result is None for result in results):
-        #     for rn in symbol_node.used_in_rules:
-        #         rule = rn.rule
-        #         result = None
-        #         premise_result = None
-
-        #         if isinstance(rule, Implies):
-        #             conclusion_value = self.eval_expr(rule.conclusion, visited)
-        #             premise = rule.premise
-
-        #             if conclusion_value is True:
-        #                 premise_result = True
-        #             elif conclusion_value is False:
-        #                 premise_result = False
-
-        #         if premise_result is not None:
-        #             result = self.conclude_ident(premise, premise_result, ident)
-
-        #         results.append(result)
-
         # Resolve final value
         determined = [r for r in results if r is not None]
 
         if len(determined) > 1 and any(r != determined[0] for r in determined):
             raise ContradictionException(f"in rules for {ident.name}")
-
+        
         if True in determined:
             ident.value = True
         elif False in determined:
