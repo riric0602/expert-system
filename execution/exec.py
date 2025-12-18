@@ -20,7 +20,7 @@ class ContradictionException(Exception):
 
 
 class Engine:
-    def __init__(self, pr: ParseResult):
+    def __init__(self, pr: ParseResult, logging=False):
         self.rules = pr.rules
         self.original_rules = pr.original_rules
         self.symbols = {ident.name: ident for ident in pr.symbols}
@@ -28,6 +28,8 @@ class Engine:
 
         self.symbol_nodes = {}
         self.rule_nodes = []
+        self.logging = logging
+        self.logs = []
 
         self.build_graph()
 
@@ -67,6 +69,15 @@ class Engine:
     # Utils
     # --------------------------------------------------
 
+    def log(self, message):
+        self.logs.append(message)
+
+    
+    def save_logs(self, filename="reasoning.log"):
+        with open(filename, "w") as f:
+            f.write("\n".join(self.logs))
+
+    
     def is_not_query(self, ident: Ident) -> bool:
         return ident.value is not True and ident.name not in [q.name for q in self.queries]
 
@@ -263,6 +274,7 @@ class Engine:
 
         # Known value
         if ident.value is not None:
+            self.log(f"{ident.name} known as {ident.value}")
             return ident.value
 
         if visited is None:
@@ -276,26 +288,44 @@ class Engine:
 
         # Only rules that can produce this fact
         for rn in symbol_node.produced_by_rules:
+            self.log(f"Trying rule for {goal.name}: {rn.original}")
+
             rule = rn.rule
             result = None
 
             if isinstance(rule, Implies):
                 premise_value = self.eval_expr(rule.premise, visited)
+                self.log(f"Premise {rule.premise} evaluated as {premise_value}")
+
                 conclusion = rule.conclusion
                 conclusion_result = None
 
                 if premise_value is True:
                     conclusion_result = True
+                    self.log(f"Premise is True → conclusion should be True")
                 elif premise_value is False:
                     conclusion_result = False
+                    self.log(f"Premise is False → conclusion default to False")
+                else:
+                    self.log(f"Premise is Unknown → conclusion remains undetermined")
 
             elif isinstance(rule, Equiv):
                 if self.ident_in_expr(rule.left, ident):
-                    conclusion_result = self.eval_expr(rule.right, visited)
-                    conclusion = rule.left
+                    premise, conclusion = rule.right, rule.left
                 else:
-                    conclusion_result = self.eval_expr(rule.left, visited)
-                    conclusion = rule.right
+                    premise, conclusion = rule.left, rule.right
+
+                conclusion_result = self.eval_expr(premise, visited)
+
+                self.log(f"Other side of Equiv {premise} evaluated as {conclusion_result}")
+                self.log(f"Using {rn.original} → conclusion = {conclusion_result}")
+
+                # if self.ident_in_expr(rule.left, ident):
+                #     conclusion_result = self.eval_expr(rule.right, visited)
+                #     conclusion = rule.left
+                # else:
+                #     conclusion_result = self.eval_expr(rule.left, visited)
+                #     conclusion = rule.right
 
             if conclusion_result is not None:
                 result = self.conclude_ident(conclusion, conclusion_result, ident)
@@ -314,6 +344,8 @@ class Engine:
             ident.value = False
         else:
             ident.value = None
+
+        self.log(f"Conclusion: {ident.name} = {ident.value}")
 
         return ident.value
 

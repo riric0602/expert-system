@@ -2,104 +2,105 @@ from execution.exec import Engine
 from parsing.file_utils import parser
 import os
 
+
 tests = {
     # And conclusions
-    "inputs/eval_tests/and_conclusions/1.txt": {
+    "tester/inputs/eval_tests/and_conclusions/1.txt": {
         "A": True,
         "F": True,
         "K": True,
         "P": True
     },
-    "inputs/eval_tests/and_conclusions/2.txt": {
+    "tester/inputs/eval_tests/and_conclusions/2.txt": {
         "A": True,
         "F": True,
         "K": False,
         "P": True
     },
     # Or conditions
-    "inputs/eval_tests/or_conditions/3.txt": {
+    "tester/inputs/eval_tests/or_conditions/3.txt": {
         "A": False
     },
-    "inputs/eval_tests/or_conditions/4.txt": {
+    "tester/inputs/eval_tests/or_conditions/4.txt": {
         "A": True
     },
-    "inputs/eval_tests/or_conditions/5.txt": {
+    "tester/inputs/eval_tests/or_conditions/5.txt": {
         "A": True
     },
-    "inputs/eval_tests/or_conditions/6.txt": {
+    "tester/inputs/eval_tests/or_conditions/6.txt": {
         "A": True
     },
     # Xor conditions
-    "inputs/eval_tests/xor_conditions/7.txt": {
+    "tester/inputs/eval_tests/xor_conditions/7.txt": {
         "A": False
     },
-    "inputs/eval_tests/xor_conditions/8.txt": {
+    "tester/inputs/eval_tests/xor_conditions/8.txt": {
         "A": True
     },
-    "inputs/eval_tests/xor_conditions/9.txt": {
+    "tester/inputs/eval_tests/xor_conditions/9.txt": {
         "A": True
     },
-    "inputs/eval_tests/xor_conditions/10.txt": {
+    "tester/inputs/eval_tests/xor_conditions/10.txt": {
         "A": False
     },
     # Negation
-    "inputs/eval_tests/negation/12.txt": {
+    "tester/inputs/eval_tests/negation/12.txt": {
         "A": False
     },
-    "inputs/eval_tests/negation/13.txt": {
+    "tester/inputs/eval_tests/negation/13.txt": {
         "A": True
     },
-    "inputs/eval_tests/negation/14.txt": {
+    "tester/inputs/eval_tests/negation/14.txt": {
         "A": False
     },
-    "inputs/eval_tests/negation/15.txt": {
+    "tester/inputs/eval_tests/negation/15.txt": {
         "A": False
     },
     # Same conclusion
-    "inputs/eval_tests/same_conclusion/16.txt": {
+    "tester/inputs/eval_tests/same_conclusion/16.txt": {
         "A": False
     },
-    "inputs/eval_tests/same_conclusion/17.txt": {
+    "tester/inputs/eval_tests/same_conclusion/17.txt": {
         "A": True
     },
-    "inputs/eval_tests/same_conclusion/18.txt": {
+    "tester/inputs/eval_tests/same_conclusion/18.txt": {
         "A": True
     },
-    "inputs/eval_tests/same_conclusion/19.txt": {
+    "tester/inputs/eval_tests/same_conclusion/19.txt": {
         "A": True
     },
     # Parentheses
-    "inputs/eval_tests/parentheses/20.txt": {
+    "tester/inputs/eval_tests/parentheses/20.txt": {
         "E": False
     },
-    "inputs/eval_tests/parentheses/21.txt": {
+    "tester/inputs/eval_tests/parentheses/21.txt": {
         "E": True
     },
-    "inputs/eval_tests/parentheses/22.txt": {
+    "tester/inputs/eval_tests/parentheses/22.txt": {
         "E": False
     },
-    "inputs/eval_tests/parentheses/23.txt": {
+    "tester/inputs/eval_tests/parentheses/23.txt": {
         "E": False
     },
-    "inputs/eval_tests/parentheses/24.txt": {
+    "tester/inputs/eval_tests/parentheses/24.txt": {
         "E": True
     },
-    "inputs/eval_tests/parentheses/25.txt": {
+    "tester/inputs/eval_tests/parentheses/25.txt": {
         "E": True
     },
-    "inputs/eval_tests/parentheses/26.txt": {
+    "tester/inputs/eval_tests/parentheses/26.txt": {
         "E": False
     },
-    "inputs/eval_tests/parentheses/27.txt": {
+    "tester/inputs/eval_tests/parentheses/27.txt": {
         "E": False
     },
-    "inputs/eval_tests/parentheses/28.txt": {
+    "tester/inputs/eval_tests/parentheses/28.txt": {
         "E": False
     },
-    "inputs/eval_tests/parentheses/29.txt": {
+    "tester/inputs/eval_tests/parentheses/29.txt": {
         "E": True
     },
-    "inputs/eval_tests/parentheses/30.txt": {
+    "tester/inputs/eval_tests/parentheses/30.txt": {
         "E": True
     }
 }
