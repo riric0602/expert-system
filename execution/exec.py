@@ -77,6 +77,18 @@ class Engine:
         with open(filename, "w") as f:
             f.write("\n".join(self.logs))
 
+
+    def split_expression(self, expr):
+        expr = expr.strip()
+        if "<=>" in expr:
+            left, right = expr.split("<=>", 1)
+            return left.strip(), right.strip()
+        elif "=>" in expr:
+            premise, conclusion = expr.split("=>", 1)
+            return premise.strip(), conclusion.strip()
+        else:
+            return expr, None
+
     
     def is_not_query(self, ident: Ident) -> bool:
         return ident.value is not True and ident.name not in [q.name for q in self.queries]
@@ -106,11 +118,11 @@ class Engine:
     # Propositional Logic
     # --------------------------------------------------
 
-    def eval_expr(self, expr, visited):
+    def eval_expr(self, expr, visited, depth=0):
         if isinstance(expr, Ident):
             if expr.name in visited:
                 return expr.value
-            value = self.prove(expr, visited)
+            value = self.prove(expr, visited, depth=depth+1)
             return value
 
         if isinstance(expr, Not):
@@ -118,7 +130,7 @@ class Engine:
             return None if v is None else not v
 
         if isinstance(expr, And):
-            vals = [self.eval_expr(t, visited) for t in expr.terms]
+            vals = [self.eval_expr(t, visited, depth=depth+1) for t in expr.terms]
             if any(v is False for v in vals):
                 return False
             if any(v is None for v in vals):
@@ -126,7 +138,7 @@ class Engine:
             return True
 
         if isinstance(expr, Or):
-            vals = [self.eval_expr(t, visited) for t in expr.terms]
+            vals = [self.eval_expr(t, visited, depth=depth+1) for t in expr.terms]
             if any(v is True for v in vals):
                 return True
             if all(v is False for v in vals):
@@ -134,7 +146,7 @@ class Engine:
             return None
 
         if isinstance(expr, Xor):
-            vals = [self.eval_expr(t, visited) for t in expr.terms]
+            vals = [self.eval_expr(t, visited, depth=depth+1) for t in expr.terms]
             result = False
             for v in vals:
                 if v != None:
@@ -268,13 +280,14 @@ class Engine:
     # Backward chaining over the graph
     # --------------------------------------------------
 
-    def prove(self, goal: Ident, visited=None):
+    def prove(self, goal: Ident, visited=None, depth=0):
+        indent = "  " * depth
         symbol_node = self.symbol_nodes[goal.name]
         ident = symbol_node.ident
 
         # Known value
         if ident.value is not None:
-            self.log(f"{ident.name} known as {ident.value}")
+            self.log(f"{indent}{ident.name} known as {ident.value}")
             return ident.value
 
         if visited is None:
@@ -288,44 +301,44 @@ class Engine:
 
         # Only rules that can produce this fact
         for rn in symbol_node.produced_by_rules:
-            self.log(f"Trying rule for {goal.name}: {rn.original}")
+            self.log(f"{indent}Trying rule for {goal.name}: {rn.original}")
 
             rule = rn.rule
             result = None
 
             if isinstance(rule, Implies):
-                premise_value = self.eval_expr(rule.premise, visited)
-                self.log(f"Premise {rule.premise} evaluated as {premise_value}")
+                premise_og, conclusion_og = self.split_expression(rn.original)
+
+                premise_value = self.eval_expr(rule.premise, visited, depth=depth+1)
+                self.log(f"{indent}Premise {premise_og} evaluated as {premise_value}")
 
                 conclusion = rule.conclusion
                 conclusion_result = None
 
                 if premise_value is True:
                     conclusion_result = True
-                    self.log(f"Premise is True → conclusion should be True")
+                    self.log(f"{indent}Premise is True => {conclusion_og} should be True")
                 elif premise_value is False:
                     conclusion_result = False
-                    self.log(f"Premise is False → conclusion default to False")
+                    self.log(f"{indent}Premise is False => {conclusion_og} default to False")
                 else:
-                    self.log(f"Premise is Unknown → conclusion remains undetermined")
+                    self.log(f"{indent}Premise is Unknown => {conclusion_og} remains undetermined")
 
             elif isinstance(rule, Equiv):
+                left_og, right_og = self.split_expression(rn.original)
+                premise_og, conclusion_og = None, None
+
                 if self.ident_in_expr(rule.left, ident):
                     premise, conclusion = rule.right, rule.left
+                    premise_og, conclusion_og = right_og, left_og
                 else:
                     premise, conclusion = rule.left, rule.right
+                    premise_og, conclusion_og = left_og, right_og
 
-                conclusion_result = self.eval_expr(premise, visited)
+                conclusion_result = self.eval_expr(premise, visited, depth + 1)
 
-                self.log(f"Other side of Equiv {premise} evaluated as {conclusion_result}")
-                self.log(f"Using {rn.original} → conclusion = {conclusion_result}")
-
-                # if self.ident_in_expr(rule.left, ident):
-                #     conclusion_result = self.eval_expr(rule.right, visited)
-                #     conclusion = rule.left
-                # else:
-                #     conclusion_result = self.eval_expr(rule.left, visited)
-                #     conclusion = rule.right
+                self.log(f"{indent}Other side of Equiv {premise_og} evaluated as {conclusion_result}")
+                self.log(f"{indent}Using {rn.original} => {conclusion_og} = {conclusion_result}")
 
             if conclusion_result is not None:
                 result = self.conclude_ident(conclusion, conclusion_result, ident)
@@ -345,7 +358,7 @@ class Engine:
         else:
             ident.value = None
 
-        self.log(f"Conclusion: {ident.name} = {ident.value}")
+        self.log(f"{indent}Conclusion: {ident.name} = {ident.value}")
 
         return ident.value
 
@@ -401,26 +414,40 @@ class Engine:
 
     def backward_chaining(self):
         try:
-            self.log("Step 1: Deduce queries")
+            self.log("=== Backward Chaining Started ===\n")
+
+            self.log("=== Step 1: Deduce Queries ===\n")
             for q in self.queries:
+                self.log(f"--- Proving query: {q.name} ---")
                 q.value = self.prove(q)
                 self.update_ident_in_rule(q)
+                self.log(f"Result for {q.name}: {q.value}\n")                
 
-            self.log("Step 2: Deduce all non-True facts")
+            self.log("=== Step 2: Deduce all non-initial facts ===\n")
             for s in self.symbols.values():
                 if s not in self.queries and s.value is None:
+                    self.log(f"--- Proving non-initial fact: {s.name} ---")
                     val = self.prove(s)
+
                     if val is None:
                         s.value = False
+                        self.log(f"{s.name} was undetermined → defaulted to False")
                     else:
                         s.value = val
-                    self.update_ident_in_rule(s)
+                        self.log(f"{s.name} determined as {s.value}")
 
-            self.log("Step 3: Re-evaluate queries")
+                    self.update_ident_in_rule(s)
+                    self.log("")
+
+            self.log("=== Step 3: Re-evaluate Queries ===\n")
             for q in self.queries:
                 if q.value is None:
+                    self.log(f"--- Re-proving query: {q.name} ---")
                     q.value = self.prove(q)
                     self.update_ident_in_rule(q)
+                    self.log(f"Final result for {q.name}: {q.value}\n")
+
+            self.log("=== Backward Chaining Completed ===\n")
 
             if self.logging:
                 self.save_logs("reasoning.log")

@@ -35,12 +35,14 @@ def parse_args():
     return parser.parse_args()
 
 
-def run_main(pr, logging):
+def run_main(pr, file_path, logging):
     engine = Engine(pr, logging)
     results = engine.backward_chaining()
 
     # Display the logs
     if logging:
+        with open(file_path, "r") as f:
+            print(f.read())
         with open("reasoning.log", "r") as f:
             print(f.read())
 
@@ -254,7 +256,7 @@ if __name__ == "__main__":
             if args.interactive:
                 launch_interactive_window(load_program_lines(file_path), parse_result)
             else:
-                run_main(parse_result, logging)
+                run_main(parse_result, file_path, logging)
 
     except ContradictionException as e:
         print(f"Contradiction detected {e}")
