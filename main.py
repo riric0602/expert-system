@@ -83,7 +83,7 @@ def load_parse_result(lines: Iterable[str]):
     return pr
 
 
-def run_inference(base_lines: List[str], fact_overrides: Dict[str, Optional[bool]]):
+def run_inference(base_lines: List[str], fact_overrides: Dict[str, Optional[bool]], logging):
     pr = load_parse_result(base_lines)
 
     # Apply overrides to known identifiers
@@ -99,7 +99,7 @@ def run_inference(base_lines: List[str], fact_overrides: Dict[str, Optional[bool
         if name not in {i.name for i in pr.symbols}:
             pr.symbols.add(Ident(name, value))
 
-    engine = Engine(pr)
+    engine = Engine(pr, logging)
     try:
         engine.backward_chaining()
     except SystemExit:
@@ -111,7 +111,7 @@ def run_inference(base_lines: List[str], fact_overrides: Dict[str, Optional[bool
     return queries, facts
 
 
-def launch_interactive_prompt(base_lines: List[str], base_parse_result):
+def launch_interactive_prompt(base_lines: List[str], base_parse_result, logging):
     def value_label(v: Optional[bool]) -> str:
         if v is True:
             return "true"
@@ -210,7 +210,14 @@ def launch_interactive_prompt(base_lines: List[str], base_parse_result):
 
         elif raw_cmd == "QUERY":
             try:
-                queries, facts = run_inference(base_lines, fact_values)
+                queries, facts = run_inference(base_lines, fact_values, logging)
+
+                if logging:
+                    with open(file_path, "r") as f:
+                        print("=== Original file ===\n")
+                        print(f.read())
+                    with open("reasoning.log", "r") as f:
+                        print(f.read())
             except Exception as e:
                 print(f" Error during inference: {e}")
                 continue
@@ -262,7 +269,7 @@ if __name__ == "__main__":
             parse_result = parser(file_path)
 
             if args.interactive:
-                launch_interactive_prompt(load_program_lines(file_path), parse_result)
+                launch_interactive_prompt(load_program_lines(file_path), parse_result, logging)
             else:
                 run_main(parse_result, file_path, logging)
 
@@ -271,4 +278,4 @@ if __name__ == "__main__":
         sys.exit(1)
     except Exception as e:
         print(e)
-        raise
+
