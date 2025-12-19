@@ -10,7 +10,7 @@ from tester.tester import Colors, print_summary, run_test, run_contradiction_tes
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Expert system: Backward Chaning algorithm")
+    parser = argparse.ArgumentParser(description="Expert system: Backward Chaining algorithm")
     parser.add_argument(
         "input_file",
         nargs="?",
@@ -19,7 +19,7 @@ def parse_args():
     parser.add_argument(
         "--interactive",
         action="store_true",
-        help="Launch the interactive window instead of the CLI demo.",
+        help="Launch the interactive prompt instead of the CLI demo.",
     )
     parser.add_argument(
         "--tester",
@@ -111,10 +111,7 @@ def run_inference(base_lines: List[str], fact_overrides: Dict[str, Optional[bool
     return queries, facts
 
 
-def launch_interactive_window(base_lines: List[str], base_parse_result):
-    import tkinter as tk
-    from tkinter import messagebox
-
+def launch_interactive_prompt(base_lines: List[str], base_parse_result):
     def value_label(v: Optional[bool]) -> str:
         if v is True:
             return "true"
@@ -122,117 +119,128 @@ def launch_interactive_window(base_lines: List[str], base_parse_result):
             return "false"
         return "none"
 
+    def prompt_fact_name() -> Optional[str]:
+        try:
+            name = input(" Fact (A-Z): ").strip().upper()
+        except EOFError:
+            print()
+            return None
+
+        if not name:
+            print(" Please enter a fact name.")
+            return None
+        if len(name) != 1 or not name.isalpha() or not name.isupper():
+            print(" Use a single uppercase letter (A-Z).")
+            return None
+        return name
+
+    def prompt_fact_value() -> Optional[bool]:
+        while True:
+            try:
+                raw = input(" Value (true/false/none): ").strip().lower()
+            except EOFError:
+                print()
+                return None
+
+            if raw in {"true", "t", "yes", "y", "1"}:
+                return True
+            if raw in {"false", "f", "no", "n", "0"}:
+                return False
+            if raw in {"none", "null", ""}:
+                return None
+            print(" Enter true, false, or none.")
+
+    def print_fact_values():
+        print(" Current facts:")
+        for name in sorted(fact_values.keys()):
+            print(f"  - {name} = {value_label(fact_values[name])}")
+        if not fact_values:
+            print("  (none)")
+
     fact_values: Dict[str, Optional[bool]] = {
         ident.name: ident.value for ident in base_parse_result.symbols
     }
 
-    def refresh_list():
-        items = [
-            f"{name} = {value_label(fact_values[name])}"
-            for name in sorted(fact_values.keys())
-        ]
-        list_var.set(items)
+    print("Interactive mode. Commands: ADD, MODIFY, REMOVE, QUERY, LIST, HELP, EXIT")
+    print_fact_values()
 
-    def selected_fact() -> Optional[str]:
-        selection = fact_list.curselection()
-        if not selection:
-            return None
-        line = fact_list.get(selection[0])
-        return line.split("=", 1)[0].strip()
-
-    def set_fact_value(val: Optional[bool]):
-        name = selected_fact()
-        if not name:
-            messagebox.showinfo("Pick a fact", "Select a fact to update.")
-            return
-        fact_values[name] = val
-        refresh_list()
-
-    def remove_fact():
-        name = selected_fact()
-        if not name:
-            messagebox.showinfo("Remove fact", "Select a fact to remove.")
-            return
-        fact_values.pop(name, None)
-        refresh_list()
-
-    def add_fact():
-        name = add_entry.get().strip().upper()
-        if not name or len(name) != 1 or not name.isalpha() or not name.isupper():
-            messagebox.showerror("Invalid fact", "Use a single uppercase letter (A-Z).")
-            return
-        if name in fact_values:
-            messagebox.showinfo("Exists", f"Fact {name} is already listed.")
-            return
-        fact_values[name] = None
-        add_entry.delete(0, tk.END)
-        refresh_list()
-
-    def run_and_render():
+    while True:
         try:
-            queries, facts = run_inference(base_lines, fact_values)
-        except Exception as e:
-            render_result(f"Error: {e}")
-            return
+            raw_cmd = input("expert> ").strip().upper()
+        except EOFError:
+            print()
+            break
 
-        lines = ["Query results:"]
-        for name in sorted(queries.keys()):
-            lines.append(f" - {name}: {value_label(queries[name])}")
+        if not raw_cmd:
+            continue
 
-        lines.append("")
-        lines.append("Facts after inference:")
-        for name in sorted(facts.keys()):
-            lines.append(f" - {name}: {value_label(facts[name])}")
+        if raw_cmd == "ADD":
+            name = prompt_fact_name()
+            if not name:
+                continue
+            if name in fact_values:
+                print(f" Fact {name} already exists.")
+                continue
+            fact_values[name] = None
+            print(f" Added fact {name} with value none.")
+            print_fact_values()
 
-        render_result("\n".join(lines))
+        elif raw_cmd == "MODIFY":
+            name = prompt_fact_name()
+            if not name:
+                continue
+            if name not in fact_values:
+                print(f" Fact {name} does not exist. Use ADD to create it.")
+                continue
+            value = prompt_fact_value()
+            fact_values[name] = value
+            print(f" Set {name} = {value_label(value)}.")
+            print_fact_values()
 
-    def render_result(text: str):
-        output.configure(state="normal")
-        output.delete("1.0", tk.END)
-        output.insert(tk.END, text)
-        output.configure(state="disabled")
+        elif raw_cmd == "REMOVE":
+            name = prompt_fact_name()
+            if not name:
+                continue
+            if name not in fact_values:
+                print(f" Fact {name} does not exist.")
+                continue
+            fact_values.pop(name, None)
+            print(f" Removed fact {name}.")
+            print_fact_values()
 
-    root = tk.Tk()
-    root.title("Expert System (interactive)")
+        elif raw_cmd == "QUERY":
+            try:
+                queries, facts = run_inference(base_lines, fact_values)
+            except Exception as e:
+                print(f" Error during inference: {e}")
+                continue
 
-    list_var = tk.StringVar(value=[])
+            print(" Query results:")
+            for name in sorted(queries.keys()):
+                print(f"  - {name}: {value_label(queries[name])}")
 
-    top_frame = tk.Frame(root)
-    top_frame.pack(fill="both", expand=True, padx=12, pady=12)
+            print(" Facts after inference:")
+            for name in sorted(facts.keys()):
+                print(f"  - {name}: {value_label(facts[name])}")
 
-    left = tk.Frame(top_frame)
-    left.pack(side="left", fill="y")
+        elif raw_cmd == "LIST":
+            print_fact_values()
 
-    tk.Label(left, text="Facts").pack(anchor="w")
-    fact_list = tk.Listbox(left, listvariable=list_var, width=24, height=14)
-    fact_list.pack(fill="y", expand=True)
+        elif raw_cmd in {"HELP", "H"}:
+            print(" Commands:")
+            print("  ADD    - Add a new fact (value starts as none)")
+            print("  MODIFY - Change an existing fact to true/false/none")
+            print("  REMOVE - Remove an existing fact")
+            print("  QUERY  - Run the inference engine with current facts")
+            print("  LIST   - Show current facts and values")
+            print("  EXIT   - Quit interactive mode")
 
-    controls = tk.Frame(top_frame)
-    controls.pack(side="left", padx=12)
+        elif raw_cmd in {"EXIT", "QUIT"}:
+            print(" Bye.")
+            break
 
-    tk.Label(controls, text="Set value").pack(anchor="w")
-    tk.Button(controls, text="True", width=10, command=lambda: set_fact_value(True)).pack(pady=2)
-    tk.Button(controls, text="False", width=10, command=lambda: set_fact_value(False)).pack(pady=2)
-    tk.Button(controls, text="None", width=10, command=lambda: set_fact_value(None)).pack(pady=2)
-    tk.Button(controls, text="Remove", width=10, command=remove_fact).pack(pady=(8, 2))
-
-    add_frame = tk.Frame(controls)
-    add_frame.pack(pady=(12, 0), fill="x")
-    tk.Label(add_frame, text="Add fact (A-Z)").pack(anchor="w")
-    add_entry = tk.Entry(add_frame, width=12)
-    add_entry.pack(side="left", pady=2)
-    tk.Button(add_frame, text="Add", command=add_fact).pack(side="left", padx=4)
-
-    tk.Button(controls, text="Evaluate queries", command=run_and_render).pack(pady=12, fill="x")
-
-    right = tk.Frame(top_frame)
-    right.pack(side="left", fill="both", expand=True)
-    tk.Label(right, text="Results").pack(anchor="w")
-    output = tk.Text(right, height=16, width=48, state="disabled")
-    output.pack(fill="both", expand=True)
-
-    refresh_list()
-    root.mainloop()
+        else:
+            print(f" Unknown command: {raw_cmd}. Type HELP for options.")
 
 
 if __name__ == "__main__":
@@ -254,7 +262,7 @@ if __name__ == "__main__":
             parse_result = parser(file_path)
 
             if args.interactive:
-                launch_interactive_window(load_program_lines(file_path), parse_result)
+                launch_interactive_prompt(load_program_lines(file_path), parse_result)
             else:
                 run_main(parse_result, file_path, logging)
 
@@ -264,4 +272,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
         raise
-
