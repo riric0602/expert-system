@@ -161,7 +161,7 @@ def launch_interactive_prompt(base_lines: List[str], base_parse_result, logging)
         ident.name: ident.value for ident in base_parse_result.symbols
     }
 
-    print("Interactive mode. Commands: ADD, MODIFY, REMOVE, QUERY, LIST, HELP, EXIT")
+    print("Interactive mode. Commands: MODIFY, QUERY, LIST, HELP, EXIT")
     print_fact_values()
 
     while True:
@@ -174,17 +174,6 @@ def launch_interactive_prompt(base_lines: List[str], base_parse_result, logging)
         if not raw_cmd:
             continue
 
-        if raw_cmd == "ADD":
-            name = prompt_fact_name()
-            if not name:
-                continue
-            if name in fact_values:
-                print(f" Fact {name} already exists.")
-                continue
-            fact_values[name] = None
-            print(f" Added fact {name} with value none.")
-            print_fact_values()
-
         elif raw_cmd == "MODIFY":
             name = prompt_fact_name()
             if not name:
@@ -195,17 +184,6 @@ def launch_interactive_prompt(base_lines: List[str], base_parse_result, logging)
             value = prompt_fact_value()
             fact_values[name] = value
             print(f" Set {name} = {value_label(value)}.")
-            print_fact_values()
-
-        elif raw_cmd == "REMOVE":
-            name = prompt_fact_name()
-            if not name:
-                continue
-            if name not in fact_values:
-                print(f" Fact {name} does not exist.")
-                continue
-            fact_values.pop(name, None)
-            print(f" Removed fact {name}.")
             print_fact_values()
 
         elif raw_cmd == "QUERY":
@@ -235,9 +213,7 @@ def launch_interactive_prompt(base_lines: List[str], base_parse_result, logging)
 
         elif raw_cmd in {"HELP", "H"}:
             print(" Commands:")
-            print("  ADD    - Add a new fact (value starts as none)")
             print("  MODIFY - Change an existing fact to true/false/none")
-            print("  REMOVE - Remove an existing fact")
             print("  QUERY  - Run the inference engine with current facts")
             print("  LIST   - Show current facts and values")
             print("  EXIT   - Quit interactive mode")
